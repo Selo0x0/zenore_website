@@ -1,57 +1,8 @@
+import Link from "next/link";
 import { ProductImage } from "./product-image";
+import { formatPrice, getImageUrl, getProducts } from "./products/product-data";
 
 export const dynamic = "force-dynamic";
-
-type ProductImageMetadata = {
-  id: string;
-  url: string;
-  alt: string | null;
-  sortOrder: number;
-};
-
-type Product = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  priceKurus: number;
-  currency: string;
-  stockQuantity: number;
-  images: ProductImageMetadata[];
-};
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-
-async function getProducts(): Promise<Product[]> {
-  try {
-    const response = await fetch(`${apiUrl}/products`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
-    return (await response.json()) as Product[];
-  } catch {
-    return [];
-  }
-}
-
-function formatPrice(priceKurus: number, currency: string) {
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency,
-  }).format(priceKurus / 100);
-}
-
-function getImageUrl(image?: ProductImageMetadata) {
-  if (!image) {
-    return undefined;
-  }
-
-  return `${apiUrl}${image.url}`;
-}
 
 export default async function Home() {
   const products = await getProducts();
@@ -93,18 +44,28 @@ export default async function Home() {
                   key={product.id}
                   className="overflow-hidden border border-neutral-200 bg-white"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
-                    <ProductImage
-                      src={getImageUrl(firstImage)}
-                      alt={firstImage?.alt ?? product.name}
-                    />
-                  </div>
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="block focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
+                      <ProductImage
+                        src={getImageUrl(firstImage)}
+                        alt={firstImage?.alt ?? product.name}
+                      />
+                    </div>
+                  </Link>
 
                   <div className="flex min-h-64 flex-col gap-4 p-5">
                     <div className="flex flex-1 flex-col gap-3">
                       <div className="flex items-start justify-between gap-4">
                         <h2 className="text-lg font-semibold leading-6">
-                          {product.name}
+                          <Link
+                            href={`/products/${product.slug}`}
+                            className="hover:text-neutral-600"
+                          >
+                            {product.name}
+                          </Link>
                         </h2>
                         <p className="shrink-0 text-base font-semibold">
                           {formatPrice(product.priceKurus, product.currency)}
@@ -122,9 +83,12 @@ export default async function Home() {
                       <span className="text-neutral-500">
                         {product.stockQuantity} in stock
                       </span>
-                      <span className="font-medium text-neutral-950">
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="font-medium text-neutral-950 hover:text-neutral-600"
+                      >
                         View details
-                      </span>
+                      </Link>
                     </div>
                   </div>
                 </article>
