@@ -28,6 +28,7 @@
     "db:migrate": "npm run db:migrate -w packages/db --",
     "db:studio": "npm run db:studio -w packages/db",
     "db:validate": "npm run db:validate -w packages/db",
+    "db:seed": "npm run seed -w packages/db",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
