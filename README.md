@@ -7,7 +7,8 @@ Single-seller Turkish e-commerce platform for Zenore leather products.
 - Frontend: Next.js + TypeScript
 - Backend: NestJS + TypeScript
 - Database: PostgreSQL + Prisma
-- Firebase: Auth, Storage, Analytics/App Check
+- Firebase: Auth, Analytics/App Check
+- Product images: PostgreSQL metadata + local `/uploads` files for MVP
 - Payment: iyzico or PayTR
 
 ## Repository Structure

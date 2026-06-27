@@ -6,8 +6,8 @@ Build a single-seller Turkish e-commerce website for Zenore leather products.
 
 ## Core Principles
 
-- PostgreSQL is the source of truth for products, inventory, orders, payments, and reports.
-- Firebase is used for authentication, file storage, and selected platform services.
+- PostgreSQL is the source of truth for products, product image metadata, inventory, orders, payments, and reports.
+- Firebase is used for authentication and selected platform services.
 - The backend owns all business logic.
 - The frontend must never decide final prices, stock validity, payment status, or order status.
 - Payment callbacks must be verified by the backend before an order is marked as paid.
@@ -44,6 +44,18 @@ Example:
 ```text
 1499.90 TL -> 149990
 ```
+
+## Product Images
+
+PostgreSQL stores product image metadata, not binary image files.
+
+For the MVP, image metadata points to local file paths such as:
+
+```text
+/uploads/products/example.webp
+```
+
+Product image uploads and file management will be added later.
 
 ## Payment
 

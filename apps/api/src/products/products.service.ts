@@ -23,6 +23,17 @@ export class ProductsService {
         stockQuantity: true,
         createdAt: true,
         updatedAt: true,
+        images: {
+          orderBy: {
+            sortOrder: 'asc',
+          },
+          select: {
+            id: true,
+            url: true,
+            alt: true,
+            sortOrder: true,
+          },
+        },
       },
     });
   }
