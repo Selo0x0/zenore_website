@@ -12,3 +12,8 @@ coverage
 *.log
 
 .prisma
+
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/products/
+!/uploads/products/.gitkeep
