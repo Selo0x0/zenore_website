@@ -1,0 +1,20 @@
+{
+  "name": "zenore-website",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zenore single-seller Turkish leather e-commerce platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "echo \"Dev scripts will be added after apps are created\"",
+    "build": "echo \"Build scripts will be added after apps are created\"",
+    "lint": "echo \"Lint scripts will be added after tooling is configured\"",
+    "typecheck": "echo \"Typecheck scripts will be added after TypeScript is configured\""
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
