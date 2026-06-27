@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductImage } from "../../product-image";
 import { formatPrice, getImageUrl, getProduct } from "../product-data";
+import { AddToCartButton } from "../../cart/add-to-cart-button";
 
 export const dynamic = "force-dynamic";
 
@@ -100,12 +101,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="h-12 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700"
-          >
-            Add to cart
-          </button>
+          <AddToCartButton
+              disabled={product.stockQuantity <= 0}
+              item={{
+                productId: product.id,
+                slug: product.slug,
+                name: product.name,
+                priceKurus: product.priceKurus,
+                currency: product.currency,
+                imageUrl: getImageUrl(primaryImage),
+                imageAlt: primaryImage?.alt ?? product.name,
+              }}
+            />
         </div>
       </section>
     </main>
