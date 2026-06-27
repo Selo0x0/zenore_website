@@ -1,5 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+
+const productSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  description: true,
+  priceKurus: true,
+  currency: true,
+  stockQuantity: true,
+  createdAt: true,
+  updatedAt: true,
+  images: {
+    orderBy: {
+      sortOrder: 'asc',
+    },
+    select: {
+      id: true,
+      url: true,
+      alt: true,
+      sortOrder: true,
+    },
+  },
+} as const;
 
 @Injectable()
 export class ProductsService {
@@ -13,28 +36,23 @@ export class ProductsService {
       orderBy: {
         createdAt: 'desc',
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        priceKurus: true,
-        currency: true,
-        stockQuantity: true,
-        createdAt: true,
-        updatedAt: true,
-        images: {
-          orderBy: {
-            sortOrder: 'asc',
-          },
-          select: {
-            id: true,
-            url: true,
-            alt: true,
-            sortOrder: true,
-          },
-        },
-      },
+      select: productSelect,
     });
+  }
+
+  async findActiveProductBySlug(slug: string) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        slug,
+        status: 'ACTIVE',
+      },
+      select: productSelect,
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found.');
+    }
+
+    return product;
   }
 }
