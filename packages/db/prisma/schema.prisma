@@ -13,6 +13,22 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
 model Product {
   id            String        @id @default(cuid())
   name          String
@@ -25,6 +41,7 @@ model Product {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   images        ProductImage[]
+  orderItems    OrderItem[]
 
   @@index([status])
 }
@@ -40,4 +57,50 @@ model ProductImage {
   updatedAt DateTime @updatedAt
 
   @@index([productId, sortOrder])
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  shippingName    String
+  shippingPhone   String
+  shippingCity    String
+  shippingDistrict String
+  shippingAddress String
+  currency        String        @default("TRY")
+  subtotalKurus   Int
+  shippingKurus   Int           @default(0)
+  totalKurus      Int
+  items           OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id                  String   @id @default(cuid())
+  orderId             String
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId           String?
+  product             Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName         String
+  productSlug         String
+  unitPriceKurus      Int
+  quantity            Int
+  lineTotalKurus      Int
+  productImageUrl     String?
+  productImageAlt     String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
 }
