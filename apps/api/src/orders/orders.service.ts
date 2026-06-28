@@ -19,6 +19,10 @@ type NormalizedOrderItem = {
   quantity: number;
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^\+?[0-9 ()-]+$/;
+const letterPattern = /\p{L}/u;
+
 const orderSelect = {
   id: true,
   orderNumber: true,
@@ -153,37 +157,49 @@ export class OrdersService {
 
   private validateCustomer(createOrderDto: CreateOrderDto) {
     return {
-      customerName: this.getRequiredString(
+      customerName: this.getValidatedText(
         createOrderDto.customerName,
         'customerName',
+        2,
+        80,
+        true,
       ),
-      customerEmail: this.getRequiredString(
-        createOrderDto.customerEmail,
-        'customerEmail',
-      ),
-      customerPhone: this.getRequiredString(
+      customerEmail: this.getEmail(createOrderDto.customerEmail),
+      customerPhone: this.getPhone(
         createOrderDto.customerPhone,
         'customerPhone',
       ),
-      shippingName: this.getRequiredString(
+      shippingName: this.getValidatedText(
         createOrderDto.shippingName,
         'shippingName',
+        2,
+        80,
+        true,
       ),
-      shippingPhone: this.getRequiredString(
+      shippingPhone: this.getPhone(
         createOrderDto.shippingPhone,
         'shippingPhone',
       ),
-      shippingCity: this.getRequiredString(
+      shippingCity: this.getValidatedText(
         createOrderDto.shippingCity,
         'shippingCity',
+        2,
+        80,
+        true,
       ),
-      shippingDistrict: this.getRequiredString(
+      shippingDistrict: this.getValidatedText(
         createOrderDto.shippingDistrict,
         'shippingDistrict',
+        2,
+        80,
+        true,
       ),
-      shippingAddress: this.getRequiredString(
+      shippingAddress: this.getValidatedText(
         createOrderDto.shippingAddress,
         'shippingAddress',
+        10,
+        500,
+        false,
       ),
     };
   }
@@ -229,6 +245,57 @@ export class OrdersService {
     }
 
     return value.trim();
+  }
+
+  private getEmail(value: unknown) {
+    const email = this.getValidatedText(value, 'customerEmail', 5, 254, false);
+
+    if (!emailPattern.test(email)) {
+      throw new BadRequestException(
+        'customerEmail must be a valid email address.',
+      );
+    }
+
+    return email.toLowerCase();
+  }
+
+  private getPhone(value: unknown, fieldName: string) {
+    const phone = this.getValidatedText(value, fieldName, 10, 20, false);
+    const digitCount = phone.replace(/\D/g, '').length;
+
+    if (!phonePattern.test(phone) || digitCount < 10 || digitCount > 15) {
+      throw new BadRequestException(
+        `${fieldName} must be a valid phone number.`,
+      );
+    }
+
+    return phone;
+  }
+
+  private getValidatedText(
+    value: unknown,
+    fieldName: string,
+    minLength: number,
+    maxLength: number,
+    requireLetter: boolean,
+  ) {
+    if (typeof value !== 'string') {
+      throw new BadRequestException(`${fieldName} is required.`);
+    }
+
+    const text = value.trim();
+
+    if (text.length < minLength || text.length > maxLength) {
+      throw new BadRequestException(
+        `${fieldName} must be between ${minLength} and ${maxLength} characters.`,
+      );
+    }
+
+    if (requireLetter && !letterPattern.test(text)) {
+      throw new BadRequestException(`${fieldName} must contain letters.`);
+    }
+
+    return text;
   }
 
   private getQuantity(value: unknown, fieldName: string) {

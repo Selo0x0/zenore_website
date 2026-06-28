@@ -109,12 +109,12 @@ export default function CartPage() {
                 Shipping and payment will be added in a later step.
               </p>
 
-              <button
-                type="button"
-                className="h-12 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700"
+              <Link
+                 href="/checkout"
+                 className="flex h-12 items-center justify-center bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700"
               >
-                Continue to checkout
-              </button>
+                 Continue to checkout
+              </Link>
 
               <button
                 type="button"

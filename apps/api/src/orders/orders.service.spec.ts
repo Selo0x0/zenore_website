@@ -246,4 +246,31 @@ describe('OrdersService', () => {
       BadRequestException,
     );
   });
+
+  it('rejects invalid email addresses', async () => {
+    await expect(
+      service.createOrder({
+        ...createOrderDto,
+        customerEmail: 'not-an-email',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects invalid phone numbers', async () => {
+    await expect(
+      service.createOrder({
+        ...createOrderDto,
+        customerPhone: 'abcdefg',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects short shipping addresses', async () => {
+    await expect(
+      service.createOrder({
+        ...createOrderDto,
+        shippingAddress: 'short',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 });
