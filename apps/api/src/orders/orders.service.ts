@@ -132,26 +132,46 @@ export class OrdersService {
     const shippingKurus = 0;
     const totalKurus = subtotalKurus + shippingKurus;
 
-    return this.prisma.order.create({
-      data: {
-        orderNumber: this.createOrderNumber(),
-        customerName: customer.customerName,
-        customerEmail: customer.customerEmail,
-        customerPhone: customer.customerPhone,
-        shippingName: customer.shippingName,
-        shippingPhone: customer.shippingPhone,
-        shippingCity: customer.shippingCity,
-        shippingDistrict: customer.shippingDistrict,
-        shippingAddress: customer.shippingAddress,
-        currency,
-        subtotalKurus,
-        shippingKurus,
-        totalKurus,
-        items: {
-          create: orderItems,
+    return this.prisma.$transaction(async (tx) => {
+      for (const item of orderItems) {
+        const updated = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stockQuantity: { gte: item.quantity },
+          },
+          data: {
+            stockQuantity: { decrement: item.quantity },
+          },
+        });
+
+        if (updated.count === 0) {
+          throw new BadRequestException(
+            `${item.productName} does not have enough stock.`,
+          );
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          orderNumber: this.createOrderNumber(),
+          customerName: customer.customerName,
+          customerEmail: customer.customerEmail,
+          customerPhone: customer.customerPhone,
+          shippingName: customer.shippingName,
+          shippingPhone: customer.shippingPhone,
+          shippingCity: customer.shippingCity,
+          shippingDistrict: customer.shippingDistrict,
+          shippingAddress: customer.shippingAddress,
+          currency,
+          subtotalKurus,
+          shippingKurus,
+          totalKurus,
+          items: {
+            create: orderItems,
+          },
         },
-      },
-      select: orderSelect,
+        select: orderSelect,
+      });
     });
   }
 

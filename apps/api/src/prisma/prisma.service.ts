@@ -18,6 +18,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get order() {
     return this.getClient().order;
   }
+  
+  $transaction<T>(fn: (tx: ZenorePrismaClient) => Promise<T>): Promise<T> {
+    return this.getClient().$transaction(fn);
+  }
 
   async onModuleInit() {
     const client = await this.createClient();
