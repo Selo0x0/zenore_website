@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createPrismaClient, ProductStatus } from './index.ts';
 
 const prisma = createPrismaClient();
@@ -111,118 +114,159 @@ const categories = [
   },
 ];
 
-const products = [
-  {
-    categorySlug: 'cuzdan',
-    name: 'Classic Leather Wallet',
-    slug: 'classic-leather-wallet',
-    description: 'A compact leather wallet designed for daily use.',
-    priceKurus: 149990,
-    currency: 'TRY',
-    stockQuantity: 12,
-    status: ProductStatus.ACTIVE,
-    images: [
-      {
-        url: '/uploads/products/classic-leather-wallet-1.webp',
-        alt: 'Classic leather wallet front view',
-        sortOrder: 0,
-      },
-      {
-        url: '/uploads/products/classic-leather-wallet-2.webp',
-        alt: 'Classic leather wallet open view',
-        sortOrder: 1,
-      },
-    ],
-    variants: [
-      {
-        name: 'Kahverengi',
-        sku: 'ZEN-WALLET-CLASSIC-BROWN',
-        colorName: 'Kahverengi',
-        colorHex: '#6B4226',
-        material: 'Hakiki deri',
-        priceKurus: 149990,
-        stockQuantity: 12,
-        isDefault: true,
-        sortOrder: 0,
-        attributes: {
-          cardSlots: 6,
-          finish: 'Classic grain',
-        },
-      },
-    ],
-  },
-  {
-    categorySlug: 'cuzdan',
-    name: 'Slim Card Holder',
-    slug: 'slim-card-holder',
-    description: 'A minimal card holder with a slim pocket-friendly profile.',
-    priceKurus: 89990,
-    currency: 'TRY',
-    stockQuantity: 20,
-    status: ProductStatus.ACTIVE,
-    images: [
-      {
-        url: '/uploads/products/slim-card-holder-1.webp',
-        alt: 'Slim leather card holder front view',
-        sortOrder: 0,
-      },
-    ],
-    variants: [
-      {
-        name: 'Siyah',
-        sku: 'ZEN-CARD-HOLDER-SLIM-BLACK',
-        colorName: 'Siyah',
-        colorHex: '#1F1F1F',
-        material: 'Hakiki deri',
-        priceKurus: 89990,
-        stockQuantity: 20,
-        isDefault: true,
-        sortOrder: 0,
-        attributes: {
-          cardSlots: 4,
-          profile: 'Slim',
-        },
-      },
-    ],
-  },
-  {
-    categorySlug: 'aksesuar',
-    name: 'Braided Leather Belt',
-    slug: 'braided-leather-belt',
-    description: 'A durable braided leather belt for smart everyday styling.',
-    priceKurus: 129990,
-    currency: 'TRY',
-    stockQuantity: 8,
-    status: ProductStatus.ACTIVE,
-    images: [
-      {
-        url: '/uploads/products/braided-leather-belt-1.webp',
-        alt: 'Braided leather belt product view',
-        sortOrder: 0,
-      },
-    ],
-    variants: [
-      {
-        name: 'Kahverengi / 110 cm',
-        sku: 'ZEN-BELT-BRAIDED-BROWN-110',
-        colorName: 'Kahverengi',
-        colorHex: '#7A4A2A',
-        size: '110 cm',
-        material: 'Hakiki deri',
-        priceKurus: 129990,
-        stockQuantity: 8,
-        isDefault: true,
-        sortOrder: 0,
-        attributes: {
-          buckle: 'Metal',
-          style: 'Braided',
-        },
-      },
-    ],
-  },
+type ManifestImage = {
+  filename: string;
+  sourceFile: string;
+};
+
+type ManifestProduct = {
+  categorySlug: string;
+  categoryName: string;
+  productSlug: string;
+  suggestedName: string;
+  sourceFolder: string;
+  images: ManifestImage[];
+};
+
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const packageRoot = resolve(scriptDir, '../..');
+const manifestPath = resolve(packageRoot, 'src/data/product-photos.manifest.json');
+
+function loadManifest(): ManifestProduct[] {
+  try {
+    const raw = readFileSync(manifestPath, 'utf-8');
+    return JSON.parse(raw) as ManifestProduct[];
+  } catch {
+    throw new Error(
+      `Could not read product photo manifest at ${manifestPath}. Run "npm run import-photos -w packages/db" first.`,
+    );
+  }
+}
+
+const leatherColors = [
+  { name: 'Kahverengi', hex: '#6B4226' },
+  { name: 'Siyah', hex: '#1F1F1F' },
+  { name: 'Taba', hex: '#A0522D' },
+  { name: 'Bordo', hex: '#5C1A1A' },
+  { name: 'Lacivert', hex: '#1B2A4A' },
+  { name: 'Antik Kahve', hex: '#7A4A2A' },
+  { name: 'Krem', hex: '#E8DCC8' },
 ];
 
+const nameAdjectives = ['Klasik', 'Modern', 'Şık', 'Günlük', 'Premium'];
+
+const priceRangesTry: Record<string, [number, number]> = {
+  cuzdan: [800, 1500],
+  canta: [2000, 4000],
+  'deri-kalemlik': [300, 600],
+  'mouse-pad': [250, 450],
+  'masa-mati': [400, 700],
+  'saat-kordonu': [400, 700],
+  'deri-saat-kutusu': [600, 1200],
+  'gozluk-kilifi': [350, 600],
+  'apple-watch-kordonu': [450, 750],
+  'iphone-kilif': [500, 900],
+  'macbook-kilif': [900, 1600],
+  'airpods-kilif': [300, 500],
+  pec: [200, 400],
+};
+
+function hashString(input: string): number {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function pickColors(slug: string) {
+  const hash = hashString(slug);
+  const count = 2 + (hash % 2);
+
+  return Array.from({ length: count }, (_, i) => leatherColors[(hash + i * 3) % leatherColors.length]);
+}
+
+function pickAdjective(slug: string) {
+  const hash = hashString(`${slug}-adj`);
+  return nameAdjectives[hash % nameAdjectives.length];
+}
+
+function priceForProduct(slug: string, range: [number, number]) {
+  const [min, max] = range;
+  const hash = hashString(`${slug}-price`);
+  const steps = Math.floor((max - min) / 10) + 1;
+  const tryAmount = min + (hash % steps) * 10;
+  return tryAmount * 100 - 10;
+}
+
+function stockForProduct(slug: string) {
+  const hash = hashString(`${slug}-stock`);
+  return 5 + (hash % 26);
+}
+
+function distributeStock(total: number, count: number) {
+  const base = Math.floor(total / count);
+  const remainder = total % count;
+  return Array.from({ length: count }, (_, i) => base + (i < remainder ? 1 : 0));
+}
+
+function skuFor(productSlug: string, colorName: string) {
+  const colorCode = colorName.toUpperCase().replace(/\s+/g, '');
+  return `ZEN-${productSlug.toUpperCase()}-${colorCode}`;
+}
+
+function buildVariants(productSlug: string, priceKurus: number, totalStock: number) {
+  const colors = pickColors(productSlug);
+  const stocks = distributeStock(totalStock, colors.length);
+
+  return colors.map((color, index) => ({
+    name: color.name,
+    sku: skuFor(productSlug, color.name),
+    colorName: color.name,
+    colorHex: color.hex,
+    material: 'Hakiki deri',
+    priceKurus,
+    stockQuantity: stocks[index],
+    isDefault: index === 0,
+    sortOrder: index,
+  }));
+}
+
+function buildProducts() {
+  const manifest = loadManifest();
+
+  return manifest.map((entry) => {
+    const adjective = pickAdjective(entry.productSlug);
+    const primaryColor = pickColors(entry.productSlug)[0];
+    const categoryLabel = entry.categoryName;
+    const name = `Hakiki Deri ${categoryLabel} - ${adjective} ${primaryColor.name}`;
+    const description = `${adjective} tasarımı ve ${primaryColor.name.toLowerCase()} rengiyle dikkat çeken bu hakiki deri ${categoryLabel.toLowerCase()}, günlük kullanım için özenle üretildi.`;
+    const priceRange = priceRangesTry[entry.categorySlug] ?? [300, 600];
+    const priceKurus = priceForProduct(entry.productSlug, priceRange);
+    const stockQuantity = stockForProduct(entry.productSlug);
+
+    return {
+      categorySlug: entry.categorySlug,
+      name,
+      slug: entry.productSlug,
+      description,
+      priceKurus,
+      currency: 'TRY',
+      stockQuantity,
+      status: ProductStatus.ACTIVE,
+      images: entry.images.map((image, index) => ({
+        url: image.filename,
+        alt: `${name} ürün görseli ${index + 1}`,
+        sortOrder: index,
+      })),
+      variants: buildVariants(entry.productSlug, priceKurus, stockQuantity),
+    };
+  });
+}
+
 async function main() {
+  const products = buildProducts();
+
   for (const category of categories) {
     await prisma.category.upsert({
       where: {
@@ -259,6 +303,16 @@ async function main() {
       },
     });
   }
+
+  const keepSlugs = products.map((product) => product.slug);
+
+  await prisma.product.deleteMany({
+    where: {
+      slug: {
+        notIn: keepSlugs,
+      },
+    },
+  });
 
   for (const product of products) {
     await prisma.product.upsert({

@@ -62,5 +62,5 @@ export function getImageUrl(image?: ProductImageMetadata) {
     return undefined;
   }
 
-  return `${apiUrl}${image.url}`;
+  return `${apiUrl}/images/products/${image.url}`;
 }
