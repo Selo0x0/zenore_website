@@ -16,4 +16,5 @@ coverage
 /uploads/*
 !/uploads/.gitkeep
 !/uploads/products/
+/uploads/products/*
 !/uploads/products/.gitkeep
