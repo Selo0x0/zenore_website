@@ -17,6 +17,7 @@
     "db:studio": "prisma studio",
     "db:validate": "prisma validate",
     "seed": "npm run build && node dist/src/seed.js",
+    "import-photos": "npm run build && node dist/src/scripts/import-photos.js",
     "build": "npm run db:generate && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -29,6 +30,7 @@
     "@types/node": "^20.19.43",
     "dotenv": "^17.4.2",
     "prisma": "^7.8.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3"
   }
 }
