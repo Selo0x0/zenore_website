@@ -109,9 +109,42 @@ model ProductImage {
   @@index([variantId, sortOrder])
 }
 
+model Customer {
+  id          String    @id @default(cuid())
+  firebaseUid String    @unique
+  email       String    @unique
+  displayName String?
+  phone       String?
+  orders      Order[]
+  addresses   Address[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([firebaseUid])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String?
+  fullName   String
+  phone      String
+  city       String
+  district   String
+  address    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId])
+}
+
 model Order {
   id              String        @id @default(cuid())
   orderNumber     String        @unique
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   status          OrderStatus   @default(PENDING)
   paymentStatus   PaymentStatus @default(PENDING)
   customerName    String
@@ -130,6 +163,7 @@ model Order {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
+  @@index([customerId])
   @@index([status])
   @@index([paymentStatus])
   @@index([createdAt])
