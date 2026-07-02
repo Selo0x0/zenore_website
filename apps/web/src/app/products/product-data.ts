@@ -34,6 +34,19 @@ export async function getProducts(): Promise<Product[]> {
   }
 }
 
+export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
+  try {
+    const response = await fetch(
+      `${apiUrl}/products?category=${encodeURIComponent(categorySlug)}`,
+      { cache: "no-store" },
+    );
+    if (!response.ok) return [];
+    return (await response.json()) as Product[];
+  } catch {
+    return [];
+  }
+}
+
 export async function getProduct(slug: string): Promise<Product | null> {
   try {
     const response = await fetch(`${apiUrl}/products/${slug}`, {
