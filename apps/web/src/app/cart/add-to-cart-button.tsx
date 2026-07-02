@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import type { CartItem } from "./cart-context";
 import { useCart } from "./cart-context";
+import { useAuth } from "@/contexts/auth-context";
 
 type AddToCartButtonProps = {
   item: Omit<CartItem, "quantity">;
@@ -11,19 +13,29 @@ type AddToCartButtonProps = {
 
 export function AddToCartButton({ item, disabled }: AddToCartButtonProps) {
   const { addItem } = useCart();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const [added, setAdded] = useState(false);
+
+  function handleClick() {
+    if (!user) {
+      router.push(`/giris?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    addItem(item);
+    setAdded(true);
+  }
 
   return (
     <button
       type="button"
-      disabled={disabled}
-      onClick={() => {
-        addItem(item);
-        setAdded(true);
-      }}
+      disabled={disabled || loading}
+      onClick={handleClick}
       className="h-12 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
     >
-      {added ? "Added to cart" : "Add to cart"}
+      {added ? "Sepete Eklendi" : "Sepete Ekle"}
     </button>
   );
 }
