@@ -40,6 +40,17 @@ export class ProductsService {
     });
   }
 
+  findByCategorySlug(categorySlug: string) {
+    return this.prisma.product.findMany({
+      where: {
+        status: 'ACTIVE',
+        category: { slug: categorySlug },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: productSelect,
+    });
+  }
+
   async findActiveProductBySlug(slug: string) {
     const product = await this.prisma.product.findFirst({
       where: {

@@ -17,22 +17,22 @@ export default async function Home() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                Leather essentials for everyday carry.
+                Günlük kullanım için hakiki deri ürünler.
               </h1>
               <p className="mt-4 text-base leading-7 text-neutral-600">
-                A focused collection of wallets, card holders, and leather
-                goods built for clean daily use.
+                Cüzdan, çanta ve ofis aksesuarlarından oluşan özenle
+                seçilmiş hakiki deri koleksiyonumuz.
               </p>
             </div>
             <p className="text-sm text-neutral-500">
-              {products.length} products available
+              {products.length} ürün mevcut
             </p>
           </div>
         </header>
 
         {products.length === 0 ? (
           <div className="flex min-h-72 items-center justify-center border border-dashed border-neutral-300 bg-white p-8 text-center text-neutral-500">
-            No products are available right now.
+            Şu anda ürün bulunmamaktadır.
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,7 +42,7 @@ export default async function Home() {
               return (
                 <article
                   key={product.id}
-                  className="overflow-hidden border border-neutral-200 bg-white"
+                  className="overflow-hidden border border-neutral-200 bg-white transition hover:shadow-md"
                 >
                   <Link
                     href={`/products/${product.slug}`}
@@ -81,13 +81,13 @@ export default async function Home() {
 
                     <div className="flex items-center justify-between border-t border-neutral-100 pt-4 text-sm">
                       <span className="text-neutral-500">
-                        {product.stockQuantity} in stock
+                        {product.stockQuantity} stokta
                       </span>
                       <Link
                         href={`/products/${product.slug}`}
                         className="font-medium text-neutral-950 hover:text-neutral-600"
                       >
-                        View details
+                        İncele →
                       </Link>
                     </div>
                   </div>

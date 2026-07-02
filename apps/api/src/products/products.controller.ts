@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -6,7 +6,10 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findActiveProducts() {
+  findActiveProducts(@Query('category') category?: string) {
+    if (category) {
+      return this.productsService.findByCategorySlug(category);
+    }
     return this.productsService.findActiveProducts();
   }
 

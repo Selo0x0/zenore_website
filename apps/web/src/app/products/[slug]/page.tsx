@@ -45,8 +45,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <main className="min-h-screen bg-neutral-50 text-neutral-950">
       <section className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:px-10">
         <div className="flex flex-col gap-4">
-          <Link href="/" className="text-sm font-medium text-neutral-500">
-            Back to products
+          <Link href="/" className="text-sm font-medium text-neutral-500 hover:text-neutral-950">
+            ← Tüm Ürünler
           </Link>
 
           <div className="relative aspect-[4/3] overflow-hidden border border-neutral-200 bg-stone-100">
@@ -95,9 +95,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           ) : null}
 
           <div className="border-t border-neutral-100 pt-6">
-            <p className="text-sm text-neutral-500">Availability</p>
+            <p className="text-sm text-neutral-500">Stok Durumu</p>
             <p className="mt-1 text-lg font-medium">
-              {product.stockQuantity} in stock
+              {product.stockQuantity > 0
+                ? `${product.stockQuantity} adet stokta`
+                : "Stokta yok"}
             </p>
           </div>
 
