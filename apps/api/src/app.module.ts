@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CustomersModule } from './customers/customers.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
@@ -16,6 +17,7 @@ import { ImagesModule } from './images/images.module';
       envFilePath: ['../../.env', '.env'],
     }),
     FirebaseModule,
+    CustomersModule,
     PrismaModule,
     ProductsModule,
     OrdersModule,

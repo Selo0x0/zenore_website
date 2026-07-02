@@ -11,6 +11,14 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     this.connectionString = configService.get<string>('DATABASE_URL');
   }
 
+  get customer() {
+    return this.getClient().customer;
+  }
+
+  get address() {
+    return this.getClient().address;
+  }
+
   get product() {
     return this.getClient().product;
   }
