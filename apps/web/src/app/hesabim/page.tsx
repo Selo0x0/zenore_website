@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { apiFetch } from "@/lib/api";
+import { PROVINCES } from "@/lib/turkey-locations";
+import { Toast } from "@/app/toast";
+
+function isValidPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return /^\+?[0-9 ()\-]+$/.test(phone) && digits.length >= 10 && digits.length <= 15;
+}
 
 type Customer = {
   id: string;
@@ -56,6 +63,12 @@ export default function HesabimPage() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
   const [addressSaving, setAddressSaving] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 4000);
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -126,6 +139,12 @@ export default function HesabimPage() {
   async function saveAddress(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+
+    if (!isValidPhone(addressForm.phone)) {
+      showToast("Geçerli bir telefon numarası giriniz (örn: 05XX XXX XX XX).");
+      return;
+    }
+
     setAddressSaving(true);
     try {
       const token = await user.getIdToken();
@@ -144,8 +163,8 @@ export default function HesabimPage() {
         setAddresses((prev) => [...prev, created]);
       }
       setAddressView("list");
-    } catch {
-      // ignore
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Adres kaydedilemedi. Lütfen tekrar deneyin.");
     } finally {
       setAddressSaving(false);
     }
@@ -198,7 +217,9 @@ export default function HesabimPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-950">
+    <>
+      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
+      <main className="min-h-screen bg-neutral-50 text-neutral-950">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
         {/* Page header */}
         <div className="mb-8 border-b border-neutral-200 pb-6">
@@ -492,31 +513,38 @@ export default function HesabimPage() {
                           <label className="text-sm font-medium text-neutral-700">
                             İl <span className="text-red-500">*</span>
                           </label>
-                          <input
-                            type="text"
+                          <select
                             required
                             value={addressForm.city}
                             onChange={(e) =>
-                              setAddressForm((p) => ({ ...p, city: e.target.value }))
+                              setAddressForm((p) => ({ ...p, city: e.target.value, district: "" }))
                             }
-                            placeholder="İstanbul"
                             className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
-                          />
+                          >
+                            <option value="">İl Seçiniz</option>
+                            {PROVINCES.map((p) => (
+                              <option key={p.name} value={p.name}>{p.name}</option>
+                            ))}
+                          </select>
                         </div>
                         <div className="flex flex-col gap-1.5">
                           <label className="text-sm font-medium text-neutral-700">
                             İlçe <span className="text-red-500">*</span>
                           </label>
-                          <input
-                            type="text"
+                          <select
                             required
                             value={addressForm.district}
+                            disabled={!addressForm.city}
                             onChange={(e) =>
                               setAddressForm((p) => ({ ...p, district: e.target.value }))
                             }
-                            placeholder="Kadıköy"
-                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
-                          />
+                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">İlçe Seçiniz</option>
+                            {(PROVINCES.find((p) => p.name === addressForm.city)?.districts ?? []).map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
 
@@ -611,5 +639,6 @@ export default function HesabimPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type CreateOrderDto = {
+  customerId?: string;
   customerName?: unknown;
   customerEmail?: unknown;
   customerPhone?: unknown;
@@ -51,6 +52,15 @@ const orderSelect = {
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async findByOrderNumber(orderNumber: string, customerId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { orderNumber, customerId },
+      select: orderSelect,
+    });
+    if (!order) throw new NotFoundException('Sipariş bulunamadı.');
+    return order;
+  }
 
   async createOrder(createOrderDto: CreateOrderDto) {
     const customer = this.validateCustomer(createOrderDto);
@@ -154,6 +164,7 @@ export class OrdersService {
       return tx.order.create({
         data: {
           orderNumber: this.createOrderNumber(),
+          ...(createOrderDto.customerId && { customerId: createOrderDto.customerId }),
           customerName: customer.customerName,
           customerEmail: customer.customerEmail,
           customerPhone: customer.customerPhone,
