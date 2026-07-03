@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
-import { apiFetch } from "@/lib/api";
+import { apiUrl, apiFetch } from "@/lib/api";
 import { PROVINCES } from "@/lib/turkey-locations";
 import { Toast } from "@/app/toast";
+import { ProductImage } from "@/app/product-image";
+import { formatPrice } from "@/app/products/product-data";
 
 function isValidPhone(phone: string) {
   const digits = phone.replace(/\D/g, "");
@@ -33,6 +35,56 @@ type Address = {
 };
 
 type Tab = "account" | "addresses" | "orders";
+
+type OrderItem = {
+  id: string;
+  productName: string;
+  productSlug: string;
+  unitPriceKurus: number;
+  quantity: number;
+  lineTotalKurus: number;
+  productImageUrl: string | null;
+  productImageAlt: string | null;
+};
+
+type Order = {
+  id: string;
+  orderNumber: string;
+  status: "PENDING" | "CONFIRMED" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  currency: string;
+  subtotalKurus: number;
+  shippingKurus: number;
+  totalKurus: number;
+  createdAt: string;
+  shippingName: string;
+  shippingPhone: string;
+  shippingCity: string;
+  shippingDistrict: string;
+  shippingAddress: string;
+  items: OrderItem[];
+};
+
+const STATUS_LABELS: Record<Order["status"], string> = {
+  PENDING: "Sipariş Alındı",
+  CONFIRMED: "Onaylandı",
+  PREPARING: "Hazırlanıyor",
+  SHIPPED: "Kargoya Verildi",
+  DELIVERED: "Teslim Edildi",
+  CANCELLED: "İptal Edildi",
+};
+
+const STATUS_STEPS = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED"] as const;
+
+function statusBadgeClass(status: Order["status"]) {
+  switch (status) {
+    case "PENDING":   return "bg-amber-50 text-amber-700 border border-amber-200";
+    case "CONFIRMED": return "bg-blue-50 text-blue-700 border border-blue-200";
+    case "PREPARING": return "bg-orange-50 text-orange-700 border border-orange-200";
+    case "SHIPPED":   return "bg-purple-50 text-purple-700 border border-purple-200";
+    case "DELIVERED": return "bg-green-50 text-green-700 border border-green-200";
+    case "CANCELLED": return "bg-red-50 text-red-700 border border-red-200";
+  }
+}
 
 const emptyAddressForm = {
   label: "",
@@ -65,9 +117,30 @@ export default function HesabimPage() {
   const [addressSaving, setAddressSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Orders
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   function showToast(msg: string) {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 4000);
+  }
+
+  async function loadOrders() {
+    if (!user || ordersLoaded) return;
+    setOrdersLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const data = await apiFetch<Order[]>("/customers/me/orders", token);
+      setOrders(data);
+      setOrdersLoaded(true);
+    } catch {
+      // ignore
+    } finally {
+      setOrdersLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -254,6 +327,8 @@ export default function HesabimPage() {
                     onClick={() => {
                       setTab(key);
                       setAddressView("list");
+                      setSelectedOrder(null);
+                      if (key === "orders") loadOrders();
                     }}
                     className={`rounded-sm px-3 py-2.5 text-left text-sm font-medium transition ${
                       tab === key
@@ -603,36 +678,278 @@ export default function HesabimPage() {
             {/* ORDERS TAB */}
             {tab === "orders" && (
               <div className="border border-neutral-200 bg-white p-6 sm:p-8">
-                <h2 className="mb-6 text-lg font-semibold">Siparişlerim</h2>
-                <div className="flex flex-col items-center gap-5 py-16 text-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
-                    <svg
-                      className="h-9 w-9 text-neutral-300"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                      <line x1="3" y1="6" x2="21" y2="6" />
-                      <path d="M16 10a4 4 0 0 1-8 0" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold">Henüz siparişiniz yok</p>
-                    <p className="mt-1 text-sm text-neutral-400">
-                      İlk siparişinizi verin, burada görüntülensin.
-                    </p>
-                  </div>
-                  <Link
-                    href="/"
-                    className="mt-2 bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
-                  >
-                    Alışverişe Başla
-                  </Link>
-                </div>
+                {selectedOrder ? (
+                  /* ── ORDER DETAIL ── */
+                  <>
+                    <div className="mb-6 flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrder(null)}
+                        className="text-sm text-neutral-400 transition hover:text-neutral-950"
+                      >
+                        ← Siparişlerime Dön
+                      </button>
+                    </div>
+
+                    <div className="mb-6">
+                      <p className="font-mono text-sm font-semibold text-neutral-700">
+                        {selectedOrder.orderNumber}
+                      </p>
+                      <p className="mt-0.5 text-xs text-neutral-400">
+                        {new Date(selectedOrder.createdAt).toLocaleDateString("tr-TR", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+
+                    {selectedOrder.status === "CANCELLED" ? (
+                      <div className="mb-8 flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-3">
+                        <span className="text-sm font-medium text-red-700">
+                          Bu sipariş iptal edildi.
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="mb-8 overflow-x-auto pb-2">
+                        <div className="flex min-w-[380px] items-start">
+                          {STATUS_STEPS.map((step, i) => {
+                            const currentIdx = (STATUS_STEPS as readonly string[]).indexOf(
+                              selectedOrder.status,
+                            );
+                            const isReached = i <= currentIdx;
+                            const isLast = i === STATUS_STEPS.length - 1;
+                            return (
+                              <div key={step} className="flex flex-1 flex-col items-center">
+                                <div className="flex w-full items-center">
+                                  {i === 0 ? (
+                                    <div className="flex-1" />
+                                  ) : (
+                                    <div
+                                      className={`h-px flex-1 transition-colors ${isReached ? "bg-neutral-950" : "bg-neutral-200"}`}
+                                    />
+                                  )}
+                                  <div
+                                    className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors ${
+                                      isReached
+                                        ? "border-neutral-950 bg-neutral-950"
+                                        : "border-neutral-200 bg-white"
+                                    }`}
+                                  >
+                                    {isReached && (
+                                      <svg
+                                        className="h-3.5 w-3.5 text-white"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <polyline points="20 6 9 17 4 12" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  {isLast ? (
+                                    <div className="flex-1" />
+                                  ) : (
+                                    <div
+                                      className={`h-px flex-1 transition-colors ${i < currentIdx ? "bg-neutral-950" : "bg-neutral-200"}`}
+                                    />
+                                  )}
+                                </div>
+                                <p
+                                  className={`mt-2 text-center text-[10px] leading-tight ${
+                                    isReached ? "font-semibold text-neutral-950" : "text-neutral-400"
+                                  }`}
+                                >
+                                  {STATUS_LABELS[step]}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Items */}
+                    <div className="mb-6">
+                      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                        Ürünler
+                      </h3>
+                      <div className="flex flex-col gap-4">
+                        {selectedOrder.items.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3">
+                            <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-neutral-100">
+                              {item.productImageUrl ? (
+                                <ProductImage
+                                  src={`${apiUrl}/images/products/${item.productImageUrl}`}
+                                  alt={item.productImageAlt ?? item.productName}
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-neutral-100" />
+                              )}
+                            </div>
+                            <div className="flex flex-1 flex-col gap-0.5 min-w-0">
+                              <p className="truncate text-sm font-medium">{item.productName}</p>
+                              <p className="text-xs text-neutral-400">
+                                {item.quantity} adet ×{" "}
+                                {formatPrice(item.unitPriceKurus, selectedOrder.currency)}
+                              </p>
+                            </div>
+                            <p className="shrink-0 text-sm font-semibold">
+                              {formatPrice(item.lineTotalKurus, selectedOrder.currency)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Shipping address */}
+                    <div className="mb-6 border-t border-neutral-100 pt-5">
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                        Teslimat Adresi
+                      </h3>
+                      <p className="text-sm font-medium text-neutral-700">
+                        {selectedOrder.shippingName}
+                      </p>
+                      <p className="text-sm text-neutral-500">{selectedOrder.shippingPhone}</p>
+                      <p className="mt-1 text-sm leading-6 text-neutral-600">
+                        {selectedOrder.shippingAddress}, {selectedOrder.shippingDistrict},{" "}
+                        {selectedOrder.shippingCity}
+                      </p>
+                    </div>
+
+                    {/* Price breakdown */}
+                    <div className="border-t border-neutral-100 pt-5">
+                      <div className="flex flex-col gap-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-neutral-500">Ara Toplam</span>
+                          <span>
+                            {formatPrice(selectedOrder.subtotalKurus, selectedOrder.currency)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-neutral-500">Kargo</span>
+                          <span className="font-medium text-green-600">Ücretsiz</span>
+                        </div>
+                        <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold">
+                          <span>Toplam</span>
+                          <span>
+                            {formatPrice(selectedOrder.totalKurus, selectedOrder.currency)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* ── ORDER LIST ── */
+                  <>
+                    <h2 className="mb-6 text-lg font-semibold">Siparişlerim</h2>
+
+                    {ordersLoading ? (
+                      <div className="flex justify-center py-16">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+                      </div>
+                    ) : orders.length === 0 ? (
+                      <div className="flex flex-col items-center gap-5 py-16 text-center">
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+                          <svg
+                            className="h-9 w-9 text-neutral-300"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 0 1-8 0" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold">Henüz siparişiniz yok</p>
+                          <p className="mt-1 text-sm text-neutral-400">
+                            İlk siparişinizi verin, burada görüntülensin.
+                          </p>
+                        </div>
+                        <Link
+                          href="/"
+                          className="mt-2 bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+                        >
+                          Alışverişe Başla
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col divide-y divide-neutral-100">
+                        {orders.map((order) => {
+                          const firstItem = order.items[0];
+                          const extraCount = order.items.length - 1;
+                          return (
+                            <div
+                              key={order.id}
+                              className="flex items-center gap-4 py-5 first:pt-0 last:pb-0"
+                            >
+                              <div className="relative h-16 w-16 shrink-0 overflow-hidden bg-neutral-100">
+                                {firstItem?.productImageUrl ? (
+                                  <ProductImage
+                                    src={`${apiUrl}/images/products/${firstItem.productImageUrl}`}
+                                    alt={firstItem.productImageAlt ?? firstItem.productName}
+                                  />
+                                ) : (
+                                  <div className="h-full w-full bg-neutral-100" />
+                                )}
+                              </div>
+
+                              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                <p className="truncate text-sm font-semibold">
+                                  {firstItem?.productName}
+                                </p>
+                                {extraCount > 0 && (
+                                  <p className="text-xs text-neutral-400">
+                                    ve {extraCount} ürün daha
+                                  </p>
+                                )}
+                                <div className="mt-1 flex flex-wrap items-center gap-2">
+                                  <span className="font-mono text-xs text-neutral-400">
+                                    {order.orderNumber}
+                                  </span>
+                                  <span className="text-xs text-neutral-300">·</span>
+                                  <span className="text-xs text-neutral-400">
+                                    {new Date(order.createdAt).toLocaleDateString("tr-TR", {
+                                      day: "numeric",
+                                      month: "long",
+                                      year: "numeric",
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex shrink-0 flex-col items-end gap-2">
+                                <span
+                                  className={`px-2 py-0.5 text-[11px] font-medium ${statusBadgeClass(order.status)}`}
+                                >
+                                  {STATUS_LABELS[order.status]}
+                                </span>
+                                <p className="text-sm font-semibold">
+                                  {formatPrice(order.totalKurus, order.currency)}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedOrder(order)}
+                                  className="text-xs font-medium text-neutral-500 transition hover:text-neutral-950"
+                                >
+                                  Detaylar →
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
