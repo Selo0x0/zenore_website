@@ -127,4 +127,42 @@ export class CustomersService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async getFavorites(customerId: string) {
+    return this.prisma.favorite.findMany({
+      where: { customerId },
+      select: {
+        productId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            priceKurus: true,
+            currency: true,
+            images: {
+              take: 1,
+              orderBy: { sortOrder: 'asc' },
+              select: { url: true, alt: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async addFavorite(customerId: string, productId: string) {
+    return this.prisma.favorite.upsert({
+      where: { customerId_productId: { customerId, productId } },
+      create: { customerId, productId },
+      update: {},
+      select: { productId: true },
+    });
+  }
+
+  async removeFavorite(customerId: string, productId: string) {
+    await this.prisma.favorite.deleteMany({ where: { customerId, productId } });
+    return { success: true };
+  }
 }

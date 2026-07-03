@@ -108,4 +108,29 @@ export class CustomersController {
     const customer = await this.customers.findByFirebaseUid(user.uid);
     return this.customers.getOrders(customer.id);
   }
+
+  @Get('me/favorites')
+  async getFavorites(@CurrentUser() user: DecodedIdToken) {
+    const customer = await this.customers.findByFirebaseUid(user.uid);
+    return this.customers.getFavorites(customer.id);
+  }
+
+  @Post('me/favorites')
+  async addFavorite(
+    @CurrentUser() user: DecodedIdToken,
+    @Body('productId') productId: string,
+  ) {
+    const customer = await this.customers.findByFirebaseUid(user.uid);
+    return this.customers.addFavorite(customer.id, productId);
+  }
+
+  @Delete('me/favorites/:productId')
+  @HttpCode(200)
+  async removeFavorite(
+    @CurrentUser() user: DecodedIdToken,
+    @Param('productId') productId: string,
+  ) {
+    const customer = await this.customers.findByFirebaseUid(user.uid);
+    return this.customers.removeFavorite(customer.id, productId);
+  }
 }
