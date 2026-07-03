@@ -1,4 +1,4 @@
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export async function apiFetch<T = unknown>(
   path: string,
@@ -16,7 +16,14 @@ export async function apiFetch<T = unknown>(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `API error ${res.status}`);
+    try {
+      const json = JSON.parse(text) as { message?: string | string[] };
+      const msg = Array.isArray(json.message) ? json.message[0] : json.message;
+      throw new Error(msg ?? `Hata ${res.status}`);
+    } catch (parseErr) {
+      if (parseErr instanceof Error && parseErr.message !== text) throw parseErr;
+      throw new Error(text || `Hata ${res.status}`);
+    }
   }
 
   return res.json() as Promise<T>;
