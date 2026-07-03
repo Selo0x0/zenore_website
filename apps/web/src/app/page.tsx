@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductImage } from "./product-image";
 import { formatPrice, getImageUrl, getProducts } from "./products/product-data";
+import { FavoriteButton } from "./favoriler/favorite-button";
 
 export const dynamic = "force-dynamic";
 
@@ -44,17 +45,32 @@ export default async function Home() {
                   key={product.id}
                   className="overflow-hidden border border-neutral-200 bg-white transition hover:shadow-md"
                 >
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="block focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
-                  >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
-                      <ProductImage
-                        src={getImageUrl(firstImage)}
-                        alt={firstImage?.alt ?? product.name}
+                  <div className="relative">
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="block focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
+                        <ProductImage
+                          src={getImageUrl(firstImage)}
+                          alt={firstImage?.alt ?? product.name}
+                        />
+                      </div>
+                    </Link>
+                    <div className="absolute right-3 top-3 z-10">
+                      <FavoriteButton
+                        item={{
+                          productId: product.id,
+                          slug: product.slug,
+                          name: product.name,
+                          priceKurus: product.priceKurus,
+                          currency: product.currency,
+                          imageUrl: getImageUrl(firstImage),
+                          imageAlt: firstImage?.alt ?? product.name,
+                        }}
                       />
                     </div>
-                  </Link>
+                  </div>
 
                   <div className="flex min-h-64 flex-col gap-4 p-5">
                     <div className="flex flex-1 flex-col gap-3">

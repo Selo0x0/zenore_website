@@ -45,6 +45,7 @@ model Product {
   images        ProductImage[]
   variants      ProductVariant[]
   orderItems    OrderItem[]
+  favorites     Favorite[]
 
   @@index([categoryId])
   @@index([status])
@@ -110,15 +111,16 @@ model ProductImage {
 }
 
 model Customer {
-  id          String    @id @default(cuid())
-  firebaseUid String    @unique
-  email       String    @unique
+  id          String     @id @default(cuid())
+  firebaseUid String     @unique
+  email       String     @unique
   displayName String?
   phone       String?
   orders      Order[]
   addresses   Address[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  favorites   Favorite[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@index([firebaseUid])
 }
@@ -167,6 +169,18 @@ model Order {
   @@index([status])
   @@index([paymentStatus])
   @@index([createdAt])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+  @@index([customerId])
 }
 
 model OrderItem {

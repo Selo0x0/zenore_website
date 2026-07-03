@@ -9,6 +9,8 @@ import { PROVINCES } from "@/lib/turkey-locations";
 import { Toast } from "@/app/toast";
 import { ProductImage } from "@/app/product-image";
 import { formatPrice } from "@/app/products/product-data";
+import { useFavorites } from "@/app/favoriler/favorites-context";
+import { FavoriteButton } from "@/app/favoriler/favorite-button";
 
 function isValidPhone(phone: string) {
   const digits = phone.replace(/\D/g, "");
@@ -34,7 +36,7 @@ type Address = {
   isDefault: boolean;
 };
 
-type Tab = "account" | "addresses" | "orders";
+type Tab = "account" | "addresses" | "orders" | "favorites";
 
 type OrderItem = {
   id: string;
@@ -99,6 +101,7 @@ const emptyAddressForm = {
 export default function HesabimPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { favorites } = useFavorites();
 
   const [tab, setTab] = useState<Tab>("account");
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -287,6 +290,7 @@ export default function HesabimPage() {
     { key: "account", label: "Hesap Bilgileri" },
     { key: "addresses", label: "Adres Defteri" },
     { key: "orders", label: "Siparişlerim" },
+    { key: "favorites", label: "Favorilerim" },
   ];
 
   return (
@@ -949,6 +953,69 @@ export default function HesabimPage() {
                       </div>
                     )}
                   </>
+                )}
+              </div>
+            )}
+            {/* FAVORITES TAB */}
+            {tab === "favorites" && (
+              <div className="border border-neutral-200 bg-white p-6 sm:p-8">
+                <h2 className="mb-6 text-lg font-semibold">Favorilerim</h2>
+
+                {favorites.length === 0 ? (
+                  <div className="flex flex-col items-center gap-5 py-16 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+                      <svg
+                        className="h-9 w-9 text-neutral-300"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold">Henüz favori ürününüz yok</p>
+                      <p className="mt-1 text-sm text-neutral-400">
+                        Ürünlerin üzerindeki kalp ikonuna tıklayarak favorilerinize ekleyin.
+                      </p>
+                    </div>
+                    <Link
+                      href="/"
+                      className="mt-2 bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+                    >
+                      Alışverişe Başla
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {favorites.map((item) => (
+                      <div
+                        key={item.productId}
+                        className="flex gap-4 border border-neutral-200 p-3"
+                      >
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-neutral-100">
+                          <ProductImage src={item.imageUrl} alt={item.imageAlt} />
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-0.5">
+                          <Link
+                            href={`/products/${item.slug}`}
+                            className="truncate text-sm font-semibold hover:text-neutral-600"
+                          >
+                            {item.name}
+                          </Link>
+                          <p className="text-sm font-medium text-neutral-500">
+                            {formatPrice(item.priceKurus, item.currency)}
+                          </p>
+                        </div>
+                        <div className="shrink-0 self-center">
+                          <FavoriteButton item={item} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
