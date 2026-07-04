@@ -14,6 +14,7 @@ export type Product = {
   currency: string;
   stockQuantity: number;
   images: ProductImageMetadata[];
+  category?: { slug: string; name: string } | null;
 };
 
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -60,6 +61,30 @@ export async function getProduct(slug: string): Promise<Product | null> {
     return (await response.json()) as Product;
   } catch {
     return null;
+  }
+}
+
+export async function getRelatedProducts(slug: string): Promise<Product[]> {
+  try {
+    const response = await fetch(`${apiUrl}/products/${slug}/related`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return [];
+    return (await response.json()) as Product[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getFeaturedProducts(slug: string): Promise<Product[]> {
+  try {
+    const response = await fetch(`${apiUrl}/products/${slug}/featured`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return [];
+    return (await response.json()) as Product[];
+  } catch {
+    return [];
   }
 }
 

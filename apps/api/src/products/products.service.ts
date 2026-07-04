@@ -11,6 +11,12 @@ const productSelect = {
   stockQuantity: true,
   createdAt: true,
   updatedAt: true,
+  category: {
+    select: {
+      slug: true,
+      name: true,
+    },
+  },
   images: {
     orderBy: {
       sortOrder: 'asc',
@@ -65,5 +71,43 @@ export class ProductsService {
     }
 
     return product;
+  }
+
+  async findRelatedProducts(slug: string, limit = 12) {
+    const current = await this.prisma.product.findFirst({
+      where: { slug, status: 'ACTIVE' },
+      select: { categoryId: true },
+    });
+
+    if (!current?.categoryId) return [];
+
+    return this.prisma.product.findMany({
+      where: {
+        status: 'ACTIVE',
+        categoryId: current.categoryId,
+        slug: { not: slug },
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      select: productSelect,
+    });
+  }
+
+  async findFeaturedProducts(slug: string, limit = 8) {
+    const current = await this.prisma.product.findFirst({
+      where: { slug, status: 'ACTIVE' },
+      select: { categoryId: true },
+    });
+
+    return this.prisma.product.findMany({
+      where: {
+        status: 'ACTIVE',
+        slug: { not: slug },
+        ...(current?.categoryId ? { categoryId: { not: current.categoryId } } : {}),
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      select: productSelect,
+    });
   }
 }

@@ -5,7 +5,12 @@ import { useAuth } from "@/contexts/auth-context";
 import { Toast } from "@/app/toast";
 import { useFavorites, type FavoriteItem } from "./favorites-context";
 
-export function FavoriteButton({ item }: { item: FavoriteItem }) {
+type Props = {
+  item: FavoriteItem;
+  variant?: "overlay" | "plain";
+};
+
+export function FavoriteButton({ item, variant = "overlay" }: Props) {
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -25,6 +30,16 @@ export function FavoriteButton({ item }: { item: FavoriteItem }) {
     await toggleFavorite(item);
   }
 
+  const buttonClass =
+    variant === "plain"
+      ? "flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110 active:scale-95"
+      : "flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/70 shadow-sm backdrop-blur-sm transition hover:bg-white/90 hover:scale-110 active:scale-95";
+
+  const iconClass =
+    variant === "plain"
+      ? `h-5 w-5 transition-colors ${favorited ? "fill-red-500 text-red-500" : "fill-none text-neutral-400 hover:text-neutral-700"}`
+      : `h-4 w-4 transition-colors ${favorited ? "fill-red-500 text-red-500" : "fill-none text-neutral-400"}`;
+
   return (
     <>
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
@@ -32,12 +47,10 @@ export function FavoriteButton({ item }: { item: FavoriteItem }) {
         type="button"
         onClick={handleClick}
         aria-label={favorited ? "Favorilerden çıkar" : "Favorilere ekle"}
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/70 shadow-sm backdrop-blur-sm transition hover:bg-white/90 hover:scale-110 active:scale-95"
+        className={buttonClass}
       >
         <svg
-          className={`h-4 w-4 transition-colors ${
-            favorited ? "fill-red-500 text-red-500" : "fill-none text-neutral-400"
-          }`}
+          className={iconClass}
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth="1.5"

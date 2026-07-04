@@ -13,6 +13,16 @@ export class ProductsController {
     return this.productsService.findActiveProducts();
   }
 
+  @Get(':slug/related')
+  findRelatedProducts(@Param('slug') slug: string) {
+    return this.productsService.findRelatedProducts(slug);
+  }
+
+  @Get(':slug/featured')
+  findFeaturedProducts(@Param('slug') slug: string) {
+    return this.productsService.findFeaturedProducts(slug);
+  }
+
   @Get(':slug')
   findActiveProductBySlug(@Param('slug') slug: string) {
     return this.productsService.findActiveProductBySlug(slug);
