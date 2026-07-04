@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
+import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type CreateOrderDto = {
@@ -51,7 +52,12 @@ const orderSelect = {
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mail: MailService,
+  ) {}
 
   async findByOrderNumber(orderNumber: string, customerId: string) {
     const order = await this.prisma.order.findFirst({
@@ -142,7 +148,7 @@ export class OrdersService {
     const shippingKurus = 0;
     const totalKurus = subtotalKurus + shippingKurus;
 
-    return this.prisma.$transaction(async (tx) => {
+    const order = await this.prisma.$transaction(async (tx) => {
       for (const item of orderItems) {
         const updated = await tx.product.updateMany({
           where: {
@@ -184,6 +190,10 @@ export class OrdersService {
         select: orderSelect,
       });
     });
+
+    void this.mail.sendOrderConfirmation(order, customer.customerEmail);
+
+    return order;
   }
 
   private validateCustomer(createOrderDto: CreateOrderDto) {

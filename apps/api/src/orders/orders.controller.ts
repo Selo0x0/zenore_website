@@ -31,7 +31,7 @@ export class OrdersController {
     return this.ordersService.createOrder({
       customerId: customer.id,
       customerName: customer.displayName ?? customer.email,
-      customerEmail: customer.email,
+      customerEmail: customer.email || user.email || '',
       customerPhone: body.shippingPhone,
       shippingName: body.shippingName,
       shippingPhone: body.shippingPhone,

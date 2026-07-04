@@ -15,9 +15,13 @@ function toTurkishError(msg: string): string {
   if (m.includes("phone")) return "Geçerli bir telefon numarası giriniz (örn: 05XX XXX XX XX).";
   if (m.includes("stock") || m.includes("unavailable") || m.includes("enough"))
     return "Üzgünüz, seçtiğiniz ürünlerden biri stokta tükendi. Lütfen sepetinizi kontrol ediniz.";
-  if (m.includes("name") || m.includes("required"))
-    return "Lütfen tüm zorunlu alanları eksiksiz doldurunuz.";
   if (m.includes("email")) return "Geçerli bir e-posta adresi giriniz.";
+  if (m.includes("address")) return "Açık adres en az 10 karakter olmalıdır (mahalle, sokak, bina no...).";
+  if (m.includes("city") || m.includes("district")) return "Lütfen il ve ilçe seçiniz.";
+  if (m.includes("currency")) return "Sepetinizdeki ürünler farklı para birimleri içeriyor.";
+  if (m.includes("items")) return "Sepetiniz boş görünüyor. Lütfen tekrar deneyin.";
+  if (m.includes("name") || m.includes("required") || m.includes("between"))
+    return "Lütfen tüm zorunlu alanları eksiksiz doldurunuz.";
   return "Bir hata oluştu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.";
 }
 
@@ -101,8 +105,28 @@ export default function OdemePage() {
       };
     }
 
+    if (!shipping.fullName || shipping.fullName.trim().length < 2) {
+      showToast("Ad soyad en az 2 karakter olmalıdır.");
+      return;
+    }
+
     if (!isValidPhone(shipping.phone)) {
       showToast("Geçerli bir telefon numarası giriniz (örn: 05XX XXX XX XX).");
+      return;
+    }
+
+    if (!shipping.city) {
+      showToast("Lütfen il seçiniz.");
+      return;
+    }
+
+    if (!shipping.district) {
+      showToast("Lütfen ilçe seçiniz.");
+      return;
+    }
+
+    if (shipping.address.trim().length < 10) {
+      showToast("Açık adres en az 10 karakter olmalıdır (mahalle, sokak, bina no...).");
       return;
     }
 
@@ -302,6 +326,9 @@ export default function OdemePage() {
                       placeholder="Mahalle, sokak, bina no, daire..."
                       className="resize-none border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
                     />
+                    {newForm.address.length > 0 && newForm.address.length < 10 && (
+                      <p className="text-xs text-amber-600">En az 10 karakter giriniz ({newForm.address.length}/10)</p>
+                    )}
                   </div>
                 </div>
               )}
