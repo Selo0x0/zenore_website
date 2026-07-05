@@ -119,6 +119,7 @@ model Customer {
   orders      Order[]
   addresses   Address[]
   favorites   Favorite[]
+  isAdmin     Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 

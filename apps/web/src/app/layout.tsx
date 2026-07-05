@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
-import { CartLink } from "./cart/cart-link";
 import { CartProvider } from "./cart/cart-context";
 import { FavoritesProvider } from "./favoriler/favorites-context";
-import { FavoritesLink } from "./favoriler/favorites-link";
 import { AuthProvider } from "@/contexts/auth-context";
-import { AuthNav } from "./auth-nav";
-import { MainNav } from "./nav";
+import { ShopShell } from "./shop-shell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,23 +35,9 @@ export default function RootLayout({
         <AuthProvider>
           <CartProvider>
             <FavoritesProvider>
-              <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
-                <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8 lg:px-10">
-                  <Link
-                    href="/"
-                    className="text-sm font-semibold uppercase tracking-[0.18em] text-neutral-950"
-                  >
-                    Zenore
-                  </Link>
-                  <div className="flex items-center gap-4">
-                    <AuthNav />
-                    <FavoritesLink />
-                    <CartLink />
-                  </div>
-                </div>
-                <MainNav />
-              </header>
-              {children}
+              <ShopShell>
+                {children}
+              </ShopShell>
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>

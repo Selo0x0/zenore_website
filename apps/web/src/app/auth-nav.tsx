@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useCart } from "./cart/cart-context";
 
 export function AuthNav() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isAdmin } = useAuth();
   const { clearCart } = useCart();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -62,10 +62,23 @@ export function AuthNav() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-44 border border-neutral-200 bg-white py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-2 w-48 border border-neutral-200 bg-white py-1 shadow-lg">
           <div className="border-b border-neutral-100 px-4 py-2">
             <p className="truncate text-xs text-neutral-400">{user.email}</p>
           </div>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 border-b border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-50"
+            >
+              <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+              </svg>
+              Admin Paneli
+            </Link>
+          )}
           <Link
             href="/hesabim"
             onClick={() => setOpen(false)}
