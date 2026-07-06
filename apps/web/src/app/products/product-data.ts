@@ -1,3 +1,11 @@
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  sortOrder: number;
+  children?: Omit<Category, 'children'>[];
+};
+
 export type ProductImageMetadata = {
   id: string;
   url: string;
@@ -85,6 +93,26 @@ export async function getFeaturedProducts(slug: string): Promise<Product[]> {
     return (await response.json()) as Product[];
   } catch {
     return [];
+  }
+}
+
+export async function getCategories(): Promise<Category[]> {
+  try {
+    const res = await fetch(`${apiUrl}/categories`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return (await res.json()) as Category[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getCategory(slug: string): Promise<Category | null> {
+  try {
+    const res = await fetch(`${apiUrl}/categories/${slug}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return (await res.json()) as Category;
+  } catch {
+    return null;
   }
 }
 
