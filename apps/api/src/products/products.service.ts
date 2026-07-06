@@ -46,11 +46,20 @@ export class ProductsService {
     });
   }
 
-  findByCategorySlug(categorySlug: string) {
+  async findByCategorySlug(categorySlug: string) {
+    const category = await this.prisma.category.findFirst({
+      where: { slug: categorySlug },
+      select: { id: true, children: { select: { id: true } } },
+    });
+
+    if (!category) return [];
+
+    const categoryIds = [category.id, ...category.children.map((c) => c.id)];
+
     return this.prisma.product.findMany({
       where: {
         status: 'ACTIVE',
-        category: { slug: categorySlug },
+        categoryId: { in: categoryIds },
       },
       orderBy: { createdAt: 'desc' },
       select: productSelect,
@@ -108,6 +117,28 @@ export class ProductsService {
       take: limit,
       orderBy: { createdAt: 'desc' },
       select: productSelect,
+    });
+  }
+
+  findVisibleCategories() {
+    return this.prisma.category.findMany({
+      where: { isVisible: true, parentId: null },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true, name: true, slug: true, sortOrder: true,
+        children: {
+          where: { isVisible: true },
+          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+          select: { id: true, name: true, slug: true, sortOrder: true },
+        },
+      },
+    });
+  }
+
+  findVisibleCategoryBySlug(slug: string) {
+    return this.prisma.category.findFirst({
+      where: { slug, isVisible: true },
+      select: { id: true, name: true, slug: true, sortOrder: true },
     });
   }
 }

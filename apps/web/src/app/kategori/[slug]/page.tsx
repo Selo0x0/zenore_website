@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductImage } from "../../product-image";
 import {
   formatPrice,
+  getCategory,
   getImageUrl,
   getProductsByCategory,
 } from "../../products/product-data";
@@ -11,41 +12,26 @@ import { FavoriteButton } from "../../favoriler/favorite-button";
 
 export const dynamic = "force-dynamic";
 
-const categoryNames: Record<string, string> = {
-  cuzdan: "Cüzdan",
-  canta: "Çanta",
-  "deri-kalemlik": "Deri Kalemlik",
-  "mouse-pad": "Mouse Pad",
-  "masa-mati": "Masa Matı",
-  "saat-kordonu": "Saat Kordonu",
-  "deri-saat-kutusu": "Deri Saat Kutusu",
-  "gozluk-kilifi": "Gözlük Kılıfı",
-  "apple-watch-kordonu": "Apple Watch Kordonu",
-  "iphone-kilif": "iPhone Kılıf",
-  "macbook-kilif": "MacBook Kılıf",
-  "airpods-kilif": "AirPods Kılıf",
-  pec: "Peç",
-};
-
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const name = categoryNames[slug];
-  if (!name) return { title: "Kategori bulunamadı | Zenore" };
+  const category = await getCategory(slug);
+  if (!category) return { title: "Kategori bulunamadı | Zenore" };
   return {
-    title: `${name} | Zenore`,
-    description: `Zenore ${name} koleksiyonu — hakiki deri ürünler.`,
+    title: `${category.name} | Zenore`,
+    description: `Zenore ${category.name} koleksiyonu — hakiki deri ürünler.`,
   };
 }
 
 export default async function KategoriPage({ params }: Props) {
   const { slug } = await params;
-  const categoryName = categoryNames[slug];
+  const [category, products] = await Promise.all([
+    getCategory(slug),
+    getProductsByCategory(slug),
+  ]);
 
-  if (!categoryName) notFound();
-
-  const products = await getProductsByCategory(slug);
+  if (!category) notFound();
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-950">
@@ -56,7 +42,7 @@ export default async function KategoriPage({ params }: Props) {
           </p>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              {categoryName}
+              {category.name}
             </h1>
             <p className="text-sm text-neutral-500">
               {products.length} ürün mevcut
