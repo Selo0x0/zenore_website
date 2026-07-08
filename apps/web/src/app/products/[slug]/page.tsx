@@ -6,6 +6,7 @@ import { AddToCartButton } from "../../cart/add-to-cart-button";
 import { FavoriteButton } from "../../favoriler/favorite-button";
 import { ProductGallery } from "./product-gallery";
 import { ProductCarousel } from "./product-carousel";
+import { BackButton } from "../back-button";
 
 export const dynamic = "force-dynamic";
 
@@ -64,16 +65,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-950">
+      <div className="mx-auto w-full max-w-6xl px-5 pt-8 sm:px-8 lg:px-10">
+        <BackButton label="Geri" />
+      </div>
       {/* Product detail */}
-      <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:px-10">
+      <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-6 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:px-10">
         {/* Gallery column */}
         <div className="flex flex-col gap-3">
-          <Link
-            href={product.category ? `/kategori/${product.category.slug}` : "/"}
-            className="text-sm font-medium text-neutral-400 transition hover:text-neutral-950"
-          >
-            ← {product.category?.name ?? "Tüm Ürünler"}
-          </Link>
           <ProductGallery images={product.images} productName={product.name} />
         </div>
 
