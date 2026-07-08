@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductImage } from "../../product-image";
-import {
-  formatPrice,
-  getCategory,
-  getImageUrl,
-  getProductsByCategory,
-} from "../../products/product-data";
-import { FavoriteButton } from "../../favoriler/favorite-button";
+import { ProductCard } from "../../product-card";
+import { getCategory, getProductsByCategory } from "../../products/product-data";
 
 export const dynamic = "force-dynamic";
 
@@ -55,68 +48,10 @@ export default async function KategoriPage({ params }: Props) {
             Bu kategoride henüz ürün bulunmamaktadır.
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => {
-              const firstImage = product.images[0];
-              return (
-                <article
-                  key={product.id}
-                  className="overflow-hidden border border-neutral-200 bg-white transition hover:shadow-md"
-                >
-                  <div className="relative">
-                    <Link href={`/products/${product.slug}`} className="block">
-                      <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
-                        <ProductImage
-                          src={getImageUrl(firstImage)}
-                          alt={firstImage?.alt ?? product.name}
-                        />
-                      </div>
-                    </Link>
-                    <div className="absolute right-3 top-3 z-10">
-                      <FavoriteButton
-                        item={{
-                          productId: product.id,
-                          slug: product.slug,
-                          name: product.name,
-                          priceKurus: product.priceKurus,
-                          currency: product.currency,
-                          imageUrl: getImageUrl(firstImage),
-                          imageAlt: firstImage?.alt ?? product.name,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <h2 className="text-sm font-semibold leading-5">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          className="hover:text-neutral-600"
-                        >
-                          {product.name}
-                        </Link>
-                      </h2>
-                      <p className="shrink-0 text-sm font-semibold">
-                        {formatPrice(product.priceKurus, product.currency)}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-neutral-100 pt-3 text-xs">
-                      <span className="text-neutral-400">
-                        {product.stockQuantity} stokta
-                      </span>
-                      <Link
-                        href={`/products/${product.slug}`}
-                        className="font-medium text-neutral-950 hover:text-neutral-600"
-                      >
-                        İncele →
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
         )}
       </section>
