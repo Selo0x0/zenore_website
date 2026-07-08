@@ -6,9 +6,11 @@ import { useState } from "react";
 type ProductImageProps = {
   src?: string;
   alt: string;
+  className?: string;
+  sizes?: string;
 };
 
-export function ProductImage({ src, alt }: ProductImageProps) {
+export function ProductImage({ src, alt, className = "object-cover", sizes }: ProductImageProps) {
   const [hasError, setHasError] = useState(false);
 
   if (!src || hasError) {
@@ -24,8 +26,8 @@ export function ProductImage({ src, alt }: ProductImageProps) {
       src={src}
       alt={alt}
       fill
-      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-      className="object-cover"
+      sizes={sizes ?? "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"}
+      className={className}
       onError={() => setHasError(true)}
       unoptimized
     />
