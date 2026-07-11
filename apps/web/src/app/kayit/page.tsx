@@ -30,7 +30,7 @@ export default function KayitPage() {
 
       const token = await credential.user.getIdToken();
 
-      await fetch(`${apiUrl}/customers/me`, {
+      const res = await fetch(`${apiUrl}/customers/me`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -38,6 +38,14 @@ export default function KayitPage() {
         },
         body: JSON.stringify({ displayName }),
       });
+
+      if (!res.ok) {
+        setError(
+          "Hesabınız oluşturuldu ancak profil kaydedilemedi. Lütfen giriş yapmayı deneyin.",
+        );
+        setLoading(false);
+        return;
+      }
 
       router.push(redirect);
     } catch (err: unknown) {
