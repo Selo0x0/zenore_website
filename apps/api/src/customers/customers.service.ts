@@ -7,18 +7,28 @@ export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async upsertFromToken(decoded: DecodedIdToken, displayName?: string) {
-    const existing = await this.prisma.customer.findUnique({
+    const byUid = await this.prisma.customer.findUnique({
       where: { firebaseUid: decoded.uid },
     });
+    if (byUid) return byUid;
 
-    if (existing) {
-      return existing;
+    const email = decoded.email ?? '';
+    const byEmail = email
+      ? await this.prisma.customer.findUnique({ where: { email } })
+      : null;
+
+    if (byEmail) {
+      // Same email re-registered under a new Firebase identity — relink instead of duplicating
+      return this.prisma.customer.update({
+        where: { id: byEmail.id },
+        data: { firebaseUid: decoded.uid },
+      });
     }
 
     return this.prisma.customer.create({
       data: {
         firebaseUid: decoded.uid,
-        email: decoded.email ?? '',
+        email,
         displayName: displayName ?? decoded.name ?? null,
       },
     });

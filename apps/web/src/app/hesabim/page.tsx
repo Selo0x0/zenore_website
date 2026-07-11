@@ -107,6 +107,7 @@ export default function HesabimPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Account form
   const [accountForm, setAccountForm] = useState({ displayName: "", phone: "" });
@@ -157,15 +158,23 @@ export default function HesabimPage() {
     (async () => {
       try {
         const token = await user.getIdToken();
-        const [c, a] = await Promise.all([
-          apiFetch<Customer>("/customers/me", token),
-          apiFetch<Address[]>("/customers/me/addresses", token),
-        ]);
+        let c: Customer;
+        try {
+          c = await apiFetch<Customer>("/customers/me", token);
+        } catch {
+          // No matching customer record — create it now (self-heal for orphaned accounts)
+          c = await apiFetch<Customer>("/customers/me", token, {
+            method: "POST",
+            body: JSON.stringify({ displayName: user.displayName ?? undefined }),
+          });
+        }
+        const a = await apiFetch<Address[]>("/customers/me/addresses", token);
         setCustomer(c);
         setAddresses(a);
         setAccountForm({ displayName: c.displayName ?? "", phone: c.phone ?? "" });
+        setLoadError(false);
       } catch {
-        // ignore
+        setLoadError(true);
       } finally {
         setDataLoading(false);
       }
@@ -276,7 +285,26 @@ export default function HesabimPage() {
     );
   }
 
-  if (!user || !customer) return null;
+  if (!user) return null;
+
+  if (loadError || !customer) {
+    return (
+      <main className="min-h-screen bg-neutral-50">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 px-5 py-32 text-center">
+          <p className="text-sm text-neutral-500">
+            Hesap bilgileriniz yüklenemedi. Lütfen tekrar deneyin.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="h-10 bg-neutral-950 px-6 text-sm font-medium text-white transition hover:bg-neutral-800"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   const displayName = customer.displayName ?? customer.email;
   const firstName = displayName.split(" ")[0];
