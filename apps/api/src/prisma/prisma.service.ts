@@ -38,6 +38,14 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get favorite() {
     return this.getClient().favorite;
   }
+
+  get siteContent() {
+    return this.getClient().siteContent;
+  }
+
+  get contactSubmission() {
+    return this.getClient().contactSubmission;
+  }
   
   $transaction<T>(fn: (tx: ZenorePrismaClient) => Promise<T>): Promise<T> {
     return this.getClient().$transaction(fn);
