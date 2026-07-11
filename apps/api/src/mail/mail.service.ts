@@ -34,6 +34,29 @@ export class MailService {
     this.from = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev';
   }
 
+  async sendContactNotification(data: {
+    name: string;
+    email: string;
+    subject?: string;
+    message: string;
+  }): Promise<void> {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!adminEmail) return;
+    try {
+      await this.resend.emails.send({
+        from: this.from,
+        to: adminEmail,
+        subject: `Yeni iletişim mesajı — ${data.name}`,
+        html: `<p><strong>Ad:</strong> ${data.name}</p>
+<p><strong>E-posta:</strong> ${data.email}</p>
+${data.subject ? `<p><strong>Konu:</strong> ${data.subject}</p>` : ''}
+<p><strong>Mesaj:</strong><br>${data.message.replace(/\n/g, '<br>')}</p>`,
+      });
+    } catch (err) {
+      this.logger.error('Failed to send contact notification', err);
+    }
+  }
+
   async sendOrderConfirmation(order: OrderEmailData, to: string): Promise<void> {
     try {
       this.logger.log(`Sending order confirmation to ${to} for ${order.orderNumber}`);
