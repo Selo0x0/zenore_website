@@ -39,6 +39,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.getClient().favorite;
   }
 
+  get discountCode() {
+    return this.getClient().discountCode;
+  }
+
   get siteContent() {
     return this.getClient().siteContent;
   }

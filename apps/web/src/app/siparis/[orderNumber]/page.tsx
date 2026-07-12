@@ -26,6 +26,8 @@ type Order = {
   currency: string;
   subtotalKurus: number;
   shippingKurus: number;
+  discountCode: string | null;
+  discountKurus: number;
   totalKurus: number;
   createdAt: string;
   items: OrderItem[];
@@ -148,6 +150,12 @@ export default function SiparisOnayPage({
               <span className="text-neutral-500">Kargo</span>
               <span className="text-green-600">Ücretsiz</span>
             </div>
+            {order.discountKurus > 0 && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500">İndirim{order.discountCode ? ` (${order.discountCode})` : ""}</span>
+                <span className="text-emerald-600">-{formatPrice(order.discountKurus, order.currency)}</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-neutral-100 pt-3 text-base font-semibold">
               <span>Toplam</span>
               <span>{formatPrice(order.totalKurus, order.currency)}</span>

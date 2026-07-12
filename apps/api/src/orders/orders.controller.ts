@@ -12,6 +12,7 @@ type PlaceOrderBody = {
   shippingDistrict: unknown;
   shippingAddress: unknown;
   items: unknown;
+  discountCode?: unknown;
 };
 
 @Controller('orders')
@@ -39,6 +40,7 @@ export class OrdersController {
       shippingDistrict: body.shippingDistrict,
       shippingAddress: body.shippingAddress,
       items: body.items,
+      discountCode: body.discountCode,
     });
   }
 
