@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -19,6 +20,7 @@ import { CustomersService } from './customers.service';
 export class CustomersController {
   constructor(private readonly customers: CustomersService) {}
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('me')
   @HttpCode(200)
   upsertMe(
