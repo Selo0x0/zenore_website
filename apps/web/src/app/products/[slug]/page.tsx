@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatPrice, getImageUrl, getProduct, getRelatedProducts, getFeaturedProducts } from "../product-data";
 import { AddToCartButton } from "../../cart/add-to-cart-button";

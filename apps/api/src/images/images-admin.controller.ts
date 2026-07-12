@@ -25,7 +25,7 @@ export class ImagesAdminController {
   async upload(@UploadedFile() file?: Express.Multer.File) {
     if (!file) throw new BadRequestException('Dosya bulunamadı.');
     if (file.size > maxSizeBytes) {
-      throw new BadRequestException('Dosya boyutu 8MB\'ı geçemez.');
+      throw new BadRequestException("Dosya boyutu 8MB'ı geçemez.");
     }
 
     const extension = extname(file.originalname).toLowerCase();

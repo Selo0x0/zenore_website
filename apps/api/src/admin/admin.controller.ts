@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsAdminGuard } from '../auth/is-admin.guard';
@@ -21,10 +31,7 @@ export class AdminController {
   }
 
   @Get('orders')
-  getOrders(
-    @Query('status') status?: string,
-    @Query('page') page?: string,
-  ) {
+  getOrders(@Query('status') status?: string, @Query('page') page?: string) {
     return this.adminService.getOrders(status, page ? parseInt(page, 10) : 1);
   }
 
@@ -34,20 +41,14 @@ export class AdminController {
   }
 
   @Patch('orders/:id/status')
-  updateOrderStatus(
-    @Param('id') id: string,
-    @Body('status') status: string,
-  ) {
+  updateOrderStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.adminService.updateOrderStatus(id, status);
   }
 
   // ── Products ──────────────────────────────────────────────────────────────
 
   @Get('products')
-  getProducts(
-    @Query('status') status?: string,
-    @Query('page') page?: string,
-  ) {
+  getProducts(@Query('status') status?: string, @Query('page') page?: string) {
     return this.adminService.getProducts(status, page ? parseInt(page, 10) : 1);
   }
 
@@ -62,8 +63,11 @@ export class AdminController {
   }
 
   @Patch('products/:id')
-  updateProduct(@Param('id') id: string, @Body() body: Record<string, unknown>) {
-    return this.adminService.updateProduct(id, body as any);
+  updateProduct(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateProduct(id, body);
   }
 
   @Delete('products/:id')
@@ -84,8 +88,11 @@ export class AdminController {
   }
 
   @Patch('categories/:id')
-  updateCategory(@Param('id') id: string, @Body() body: Record<string, unknown>) {
-    return this.adminService.updateCategory(id, body as any);
+  updateCategory(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateCategory(id, body);
   }
 
   @Delete('categories/:id')
@@ -96,11 +103,11 @@ export class AdminController {
   // ── Customers ─────────────────────────────────────────────────────────────
 
   @Get('customers')
-  getCustomers(
-    @Query('search') search?: string,
-    @Query('page') page?: string,
-  ) {
-    return this.adminService.getCustomers(search, page ? parseInt(page, 10) : 1);
+  getCustomers(@Query('search') search?: string, @Query('page') page?: string) {
+    return this.adminService.getCustomers(
+      search,
+      page ? parseInt(page, 10) : 1,
+    );
   }
 
   @Get('customers/:id')

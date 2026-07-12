@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { isValidTurkishPhone } from '../common/phone.util';
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,11 +30,13 @@ export class CustomersService {
       });
     }
 
+    const decodedName = typeof decoded.name === 'string' ? decoded.name : null;
+
     return this.prisma.customer.create({
       data: {
         firebaseUid: decoded.uid,
         email,
-        displayName: displayName ?? decoded.name ?? null,
+        displayName: displayName ?? decodedName,
       },
     });
   }
@@ -43,8 +49,15 @@ export class CustomersService {
     return customer;
   }
 
-  async updateProfile(uid: string, data: { displayName?: string; phone?: string }) {
-    if (data.phone !== undefined && data.phone.trim() && !isValidTurkishPhone(data.phone)) {
+  async updateProfile(
+    uid: string,
+    data: { displayName?: string; phone?: string },
+  ) {
+    if (
+      data.phone !== undefined &&
+      data.phone.trim() &&
+      !isValidTurkishPhone(data.phone)
+    ) {
       throw new BadRequestException('Geçerli bir telefon numarası giriniz.');
     }
 
@@ -52,7 +65,9 @@ export class CustomersService {
     return this.prisma.customer.update({
       where: { id: customer.id },
       data: {
-        ...(data.displayName !== undefined && { displayName: data.displayName }),
+        ...(data.displayName !== undefined && {
+          displayName: data.displayName,
+        }),
         ...(data.phone !== undefined && { phone: data.phone }),
       },
     });
@@ -138,8 +153,14 @@ export class CustomersService {
     if (!existing) throw new NotFoundException('Adres bulunamadı.');
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.address.updateMany({ where: { customerId }, data: { isDefault: false } });
-      return tx.address.update({ where: { id: addressId }, data: { isDefault: true } });
+      await tx.address.updateMany({
+        where: { customerId },
+        data: { isDefault: false },
+      });
+      return tx.address.update({
+        where: { id: addressId },
+        data: { isDefault: true },
+      });
     });
   }
 

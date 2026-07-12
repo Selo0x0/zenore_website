@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import type { Prisma } from '@zenore/db';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsAdminGuard } from '../auth/is-admin.guard';
@@ -10,7 +18,10 @@ export class ContentAdminController {
   constructor(private readonly content: ContentService) {}
 
   @Put('site-content/:key')
-  async upsertContent(@Param('key') key: string, @Body() body: Prisma.InputJsonValue) {
+  async upsertContent(
+    @Param('key') key: string,
+    @Body() body: Prisma.InputJsonValue,
+  ) {
     return this.content.upsertContent(key, body);
   }
 
