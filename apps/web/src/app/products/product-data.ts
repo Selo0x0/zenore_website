@@ -96,6 +96,34 @@ export async function getFeaturedProducts(slug: string): Promise<Product[]> {
   }
 }
 
+export type Review = {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  isVerified: boolean;
+  createdAt: string;
+  customer: { displayName: string | null };
+};
+
+export type ProductReviews = {
+  reviews: Review[];
+  average: number;
+  count: number;
+};
+
+export async function getProductReviews(slug: string): Promise<ProductReviews> {
+  try {
+    const response = await fetch(`${apiUrl}/products/${slug}/reviews`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return { reviews: [], average: 0, count: 0 };
+    return (await response.json()) as ProductReviews;
+  } catch {
+    return { reviews: [], average: 0, count: 0 };
+  }
+}
+
 export async function getCategories(): Promise<Category[]> {
   try {
     const res = await fetch(`${apiUrl}/categories`, { cache: "no-store" });
