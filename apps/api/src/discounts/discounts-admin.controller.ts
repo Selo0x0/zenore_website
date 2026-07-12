@@ -12,6 +12,8 @@ import {
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsAdminGuard } from '../auth/is-admin.guard';
 import { DiscountsService } from './discounts.service';
+import { CreateDiscountCodeDto } from './dto/create-discount-code.dto';
+import { UpdateDiscountCodeDto } from './dto/update-discount-code.dto';
 
 @Controller('admin/discount-codes')
 @UseGuards(FirebaseAuthGuard, IsAdminGuard)
@@ -29,13 +31,13 @@ export class DiscountsAdminController {
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
-    return this.discounts.create(body as any);
+  create(@Body() dto: CreateDiscountCodeDto) {
+    return this.discounts.create(dto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: Record<string, unknown>) {
-    return this.discounts.update(id, body);
+  update(@Param('id') id: string, @Body() dto: UpdateDiscountCodeDto) {
+    return this.discounts.update(id, dto);
   }
 
   @Delete(':id')

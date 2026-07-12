@@ -7,12 +7,32 @@ import {
   Post,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { ContentService } from './content.service';
 
 class SubmitContactDto {
+  @IsString()
+  @MinLength(2)
+  @MaxLength(80)
   name!: string;
+
+  @IsEmail()
   email!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   subject?: string;
+
+  @IsString()
+  @MinLength(5)
+  @MaxLength(2000)
   message!: string;
 }
 

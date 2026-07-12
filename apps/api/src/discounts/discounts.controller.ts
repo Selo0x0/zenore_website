@@ -1,9 +1,15 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { IsInt, IsString, Min, MinLength } from 'class-validator';
 import { DiscountsService } from './discounts.service';
 
 class ValidateDiscountDto {
+  @IsString()
+  @MinLength(1)
   code!: string;
+
+  @IsInt()
+  @Min(0)
   subtotalKurus!: number;
 }
 
