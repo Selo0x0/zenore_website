@@ -1,16 +1,17 @@
-import { getCategories, getProducts } from "./products/product-data";
+import { Suspense } from "react";
 import { HomeHero } from "./home-hero";
-import { ProductGrid } from "./product-grid";
+import { ProductGridSection } from "./product-grid-section";
+import { ProductGridSkeleton } from "./product-grid-skeleton";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
-
+export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-950">
       <HomeHero />
-      <ProductGrid products={products} categories={categories} />
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <ProductGridSection />
+      </Suspense>
     </main>
   );
 }
