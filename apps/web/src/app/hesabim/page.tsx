@@ -6,16 +6,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { apiUrl, apiFetch } from "@/lib/api";
 import { PROVINCES } from "@/lib/turkey-locations";
+import { isValidPhone, sanitizePhoneInput } from "@/lib/phone";
 import { Toast } from "@/app/toast";
 import { ProductImage } from "@/app/product-image";
 import { formatPrice } from "@/app/products/product-data";
 import { useFavorites } from "@/app/favoriler/favorites-context";
 import { FavoriteButton } from "@/app/favoriler/favorite-button";
-
-function isValidPhone(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  return /^\+?[0-9 ()\-]+$/.test(phone) && digits.length >= 10 && digits.length <= 15;
-}
 
 type Customer = {
   id: string;
@@ -186,6 +182,12 @@ export default function HesabimPage() {
   async function saveAccount(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+
+    if (accountForm.phone.trim() && !isValidPhone(accountForm.phone)) {
+      showToast("Geçerli bir telefon numarası giriniz (örn: 05XX XXX XX XX).");
+      return;
+    }
+
     setAccountSaving(true);
     try {
       const token = await user.getIdToken();
@@ -196,8 +198,8 @@ export default function HesabimPage() {
       setCustomer(updated);
       setAccountSaved(true);
       setTimeout(() => setAccountSaved(false), 3000);
-    } catch {
-      // ignore
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Kaydedilemedi. Lütfen tekrar deneyin.");
     } finally {
       setAccountSaving(false);
     }
@@ -418,7 +420,7 @@ export default function HesabimPage() {
                         type="tel"
                         value={accountForm.phone}
                         onChange={(e) =>
-                          setAccountForm((p) => ({ ...p, phone: e.target.value }))
+                          setAccountForm((p) => ({ ...p, phone: sanitizePhoneInput(e.target.value) }))
                         }
                         placeholder="0555 000 00 00"
                         className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
@@ -612,7 +614,7 @@ export default function HesabimPage() {
                             required
                             value={addressForm.phone}
                             onChange={(e) =>
-                              setAddressForm((p) => ({ ...p, phone: e.target.value }))
+                              setAddressForm((p) => ({ ...p, phone: sanitizePhoneInput(e.target.value) }))
                             }
                             placeholder="0555 000 00 00"
                             className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"

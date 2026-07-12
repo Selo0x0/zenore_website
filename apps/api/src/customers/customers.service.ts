@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { DecodedIdToken } from 'firebase-admin/auth';
+import { isValidTurkishPhone } from '../common/phone.util';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -43,6 +44,10 @@ export class CustomersService {
   }
 
   async updateProfile(uid: string, data: { displayName?: string; phone?: string }) {
+    if (data.phone !== undefined && data.phone.trim() && !isValidTurkishPhone(data.phone)) {
+      throw new BadRequestException('Geçerli bir telefon numarası giriniz.');
+    }
+
     const customer = await this.findByFirebaseUid(uid);
     return this.prisma.customer.update({
       where: { id: customer.id },
@@ -72,6 +77,10 @@ export class CustomersService {
       isDefault?: boolean;
     },
   ) {
+    if (!isValidTurkishPhone(data.phone)) {
+      throw new BadRequestException('Geçerli bir telefon numarası giriniz.');
+    }
+
     if (data.isDefault) {
       await this.prisma.address.updateMany({
         where: { customerId },
@@ -98,6 +107,10 @@ export class CustomersService {
       where: { id: addressId, customerId },
     });
     if (!existing) throw new NotFoundException('Adres bulunamadı.');
+
+    if (data.phone !== undefined && !isValidTurkishPhone(data.phone)) {
+      throw new BadRequestException('Geçerli bir telefon numarası giriniz.');
+    }
 
     if (data.isDefault) {
       await this.prisma.address.updateMany({

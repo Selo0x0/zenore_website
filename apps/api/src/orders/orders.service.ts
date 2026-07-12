@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
+import { isValidTurkishPhone } from '../common/phone.util';
 import { DiscountsService } from '../discounts/discounts.service';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,7 +25,6 @@ type NormalizedOrderItem = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phonePattern = /^\+?[0-9 ()-]+$/;
 const letterPattern = /\p{L}/u;
 
 const orderSelect = {
@@ -325,9 +325,8 @@ export class OrdersService {
 
   private getPhone(value: unknown, fieldName: string) {
     const phone = this.getValidatedText(value, fieldName, 10, 20, false);
-    const digitCount = phone.replace(/\D/g, '').length;
 
-    if (!phonePattern.test(phone) || digitCount < 10 || digitCount > 15) {
+    if (!isValidTurkishPhone(phone)) {
       throw new BadRequestException(
         `${fieldName} must be a valid phone number.`,
       );
