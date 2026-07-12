@@ -106,13 +106,28 @@ describe('OrdersService', () => {
     ],
   };
 
+  const orderCreate = jest.fn<Promise<CreatedOrder>, [OrderCreateArgs]>();
+
+  const tx = {
+    product: {
+      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+    },
+    discountCode: {
+      update: jest.fn(),
+    },
+    order: {
+      create: orderCreate,
+    },
+  };
+
   const prisma = {
     product: {
       findMany: jest.fn<Promise<ProductFixture[]>, [ProductFindManyArgs]>(),
     },
     order: {
-      create: jest.fn<Promise<CreatedOrder>, [OrderCreateArgs]>(),
+      create: orderCreate,
     },
+    $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(tx)),
   };
 
   const mail = { sendOrderConfirmation: jest.fn() };
