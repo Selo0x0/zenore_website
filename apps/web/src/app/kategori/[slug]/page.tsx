@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductCard } from "../../product-card";
 import { getCategory, getProductsByCategory } from "../../products/product-data";
+import { EmptyState, emptyStateIcons } from "../../empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +45,11 @@ export default async function KategoriPage({ params }: Props) {
         </header>
 
         {products.length === 0 ? (
-          <div className="flex min-h-72 items-center justify-center border border-dashed border-neutral-300 bg-white p-8 text-center text-neutral-500">
-            Bu kategoride henüz ürün bulunmamaktadır.
-          </div>
+          <EmptyState
+            icon={emptyStateIcons.box}
+            title="Bu kategoride henüz ürün bulunmamaktadır"
+            description="Yakında yeni ürünler eklenecek."
+          />
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
