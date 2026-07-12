@@ -14,6 +14,10 @@ import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsAdminGuard } from '../auth/is-admin.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AdminService } from './admin.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('admin')
 @UseGuards(FirebaseAuthGuard, IsAdminGuard)
@@ -53,8 +57,8 @@ export class AdminController {
   }
 
   @Post('products')
-  createProduct(@Body() body: Record<string, unknown>) {
-    return this.adminService.createProduct(body as any);
+  createProduct(@Body() dto: CreateProductDto) {
+    return this.adminService.createProduct(dto);
   }
 
   @Get('products/:id')
@@ -63,11 +67,8 @@ export class AdminController {
   }
 
   @Patch('products/:id')
-  updateProduct(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-  ) {
-    return this.adminService.updateProduct(id, body);
+  updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.adminService.updateProduct(id, dto);
   }
 
   @Delete('products/:id')
@@ -83,16 +84,13 @@ export class AdminController {
   }
 
   @Post('categories')
-  createCategory(@Body() body: Record<string, unknown>) {
-    return this.adminService.createCategory(body as any);
+  createCategory(@Body() dto: CreateCategoryDto) {
+    return this.adminService.createCategory(dto);
   }
 
   @Patch('categories/:id')
-  updateCategory(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-  ) {
-    return this.adminService.updateCategory(id, body);
+  updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    return this.adminService.updateCategory(id, dto);
   }
 
   @Delete('categories/:id')
