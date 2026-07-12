@@ -4,11 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { apiFetch } from "@/lib/api";
-import { apiUrl } from "@/app/products/product-data";
-
-function resolveImageUrl(url: string) {
-  return url.startsWith("http") ? url : `${apiUrl}/images/products/${url}`;
-}
+import { ImageUploadField } from "../../image-upload-field";
 
 type Category = { id: string; name: string };
 type ProductImage = { id: string; url: string; alt: string | null; sortOrder: number };
@@ -203,24 +199,15 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Görsel URL'leri</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Görseller</span>
           {imageUrls.map((url, i) => (
             <div key={i} className="flex gap-2">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => updateImageUrl(i, e.target.value)}
-                placeholder="https://... veya dosya-adi.png"
-                className={`flex-1 ${inputCls}`}
-              />
-              {url && (
-                <img src={resolveImageUrl(url)} alt="" className="h-9 w-9 shrink-0 rounded object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              )}
+              <ImageUploadField value={url} onChange={(v) => updateImageUrl(i, v)} className="flex-1" />
               {imageUrls.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeImageUrl(i)}
-                  className="shrink-0 px-2 text-neutral-400 hover:text-red-500"
+                  className="shrink-0 self-start px-2 pt-2 text-neutral-400 hover:text-red-500"
                 >
                   ✕
                 </button>
