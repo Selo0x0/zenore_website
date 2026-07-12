@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsAdminGuard } from '../auth/is-admin.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
@@ -84,5 +86,29 @@ export class AdminController {
   @Patch('categories/:id')
   updateCategory(@Param('id') id: string, @Body() body: Record<string, unknown>) {
     return this.adminService.updateCategory(id, body as any);
+  }
+
+  // ── Customers ─────────────────────────────────────────────────────────────
+
+  @Get('customers')
+  getCustomers(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+  ) {
+    return this.adminService.getCustomers(search, page ? parseInt(page, 10) : 1);
+  }
+
+  @Get('customers/:id')
+  getCustomer(@Param('id') id: string) {
+    return this.adminService.getCustomer(id);
+  }
+
+  @Patch('customers/:id/admin')
+  setCustomerAdmin(
+    @Param('id') id: string,
+    @Body('isAdmin') isAdmin: boolean,
+    @CurrentUser() user: DecodedIdToken,
+  ) {
+    return this.adminService.setCustomerAdmin(id, isAdmin, user.uid);
   }
 }

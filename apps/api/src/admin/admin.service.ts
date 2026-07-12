@@ -264,4 +264,74 @@ export class AdminService {
       include: { _count: { select: { products: true } }, parent: { select: { id: true, name: true } } },
     });
   }
+
+  // ── Customers ─────────────────────────────────────────────────────────────
+
+  async getCustomers(search?: string, page = 1, limit = 25) {
+    const where = search
+      ? {
+          OR: [
+            { email: { contains: search, mode: 'insensitive' as const } },
+            { displayName: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    const [customers, total] = await Promise.all([
+      this.prisma.customer.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          phone: true,
+          isAdmin: true,
+          createdAt: true,
+          _count: { select: { orders: true } },
+        },
+      }),
+      this.prisma.customer.count({ where }),
+    ]);
+
+    return { customers, total, page, limit };
+  }
+
+  async getCustomer(id: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id },
+      include: {
+        addresses: { orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }] },
+        orders: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+            paymentStatus: true,
+            totalKurus: true,
+            currency: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+    if (!customer) throw new NotFoundException('Müşteri bulunamadı.');
+    return customer;
+  }
+
+  async setCustomerAdmin(id: string, isAdmin: boolean, requesterFirebaseUid: string) {
+    const customer = await this.prisma.customer.findUnique({ where: { id } });
+    if (!customer) throw new NotFoundException('Müşteri bulunamadı.');
+    if (customer.firebaseUid === requesterFirebaseUid && !isAdmin) {
+      throw new BadRequestException('Kendi admin yetkinizi kaldıramazsınız.');
+    }
+    return this.prisma.customer.update({
+      where: { id },
+      data: { isAdmin },
+      select: { id: true, email: true, displayName: true, isAdmin: true },
+    });
+  }
 }
