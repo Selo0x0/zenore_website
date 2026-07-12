@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { formatPrice, getImageUrl, getProduct, getRelatedProducts, getFeaturedProducts } from "../product-data";
+import { formatPrice, getImageUrl, getProduct, getRelatedProducts, getFeaturedProducts, getProductReviews } from "../product-data";
 import { AddToCartButton } from "../../cart/add-to-cart-button";
 import { FavoriteButton } from "../../favoriler/favorite-button";
 import { ProductGallery } from "./product-gallery";
 import { ProductCarousel } from "./product-carousel";
+import { ProductReviews } from "./product-reviews";
 import { BackButton } from "../back-button";
 
 export const dynamic = "force-dynamic";
@@ -52,10 +53,11 @@ function StockBadge({ quantity }: { quantity: number }) {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const [product, relatedProducts, featuredProducts] = await Promise.all([
+  const [product, relatedProducts, featuredProducts, productReviews] = await Promise.all([
     getProduct(slug),
     getRelatedProducts(slug),
     getFeaturedProducts(slug),
+    getProductReviews(slug),
   ]);
 
   if (!product) notFound();
@@ -182,6 +184,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </section>
+
+      <ProductReviews
+        productId={product.id}
+        initialReviews={productReviews.reviews}
+        average={productReviews.average}
+        count={productReviews.count}
+      />
 
       {/* Carousels */}
       {(relatedProducts.length > 0 || featuredProducts.length > 0) && (

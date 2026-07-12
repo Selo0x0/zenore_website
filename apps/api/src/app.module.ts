@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
 import { ContentModule } from './content/content.module';
 import { DiscountsModule } from './discounts/discounts.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { CustomersModule } from './customers/customers.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -37,6 +38,7 @@ import { ImagesModule } from './images/images.module';
     ImagesModule,
     ContentModule,
     DiscountsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [
