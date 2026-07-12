@@ -112,7 +112,9 @@ export class ProductsService {
       where: {
         status: 'ACTIVE',
         slug: { not: slug },
-        ...(current?.categoryId ? { categoryId: { not: current.categoryId } } : {}),
+        ...(current?.categoryId
+          ? { categoryId: { not: current.categoryId } }
+          : {}),
       },
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -125,7 +127,10 @@ export class ProductsService {
       where: { isVisible: true, parentId: null },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       select: {
-        id: true, name: true, slug: true, sortOrder: true,
+        id: true,
+        name: true,
+        slug: true,
+        sortOrder: true,
         children: {
           where: { isVisible: true },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],

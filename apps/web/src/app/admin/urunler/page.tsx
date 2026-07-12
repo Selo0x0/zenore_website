@@ -55,6 +55,8 @@ export default function AdminUrunlerPage() {
 
   useEffect(() => {
     if (searchParams.get("saved")) {
+      // syncing toast visibility with a one-time URL param, not derived render state
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToast(true);
       setTimeout(() => setToast(false), 2500);
       router.replace("/admin/urunler");
@@ -81,6 +83,8 @@ export default function AdminUrunlerPage() {
   }
 
   useEffect(() => {
+    // fetchProducts sets loading=true synchronously before its first await
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchProducts(tab);
   }, [user, tab]);
 

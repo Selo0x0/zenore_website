@@ -5,9 +5,9 @@ import { MailService } from '../mail/mail.service';
 
 const DEFAULT_ABOUT = {
   hero: 'Deriyle Başlayan Bir Hikaye',
-  heroSub: '2018\'den bu yana hakiki deri ile el işçiliğini buluşturuyoruz.',
+  heroSub: "2018'den bu yana hakiki deri ile el işçiliğini buluşturuyoruz.",
   story:
-    'Zenore, 2018 yılında İstanbul\'da küçük bir atölyede kuruldu. Her ürün, yılların tecrübesiyle seçilen ham derilerden, ustalıkla işlenerek hayata geçirilmektedir. Biz sadece çanta ya da cüzdan yapmıyoruz; nesiller boyu taşınacak eserler yaratıyoruz.',
+    "Zenore, 2018 yılında İstanbul'da küçük bir atölyede kuruldu. Her ürün, yılların tecrübesiyle seçilen ham derilerden, ustalıkla işlenerek hayata geçirilmektedir. Biz sadece çanta ya da cüzdan yapmıyoruz; nesiller boyu taşınacak eserler yaratıyoruz.",
   values: [
     {
       title: 'El İşçiliği',
@@ -70,7 +70,9 @@ export class ContentService {
     subject?: string;
     message: string;
   }) {
-    const submission = await this.prisma.contactSubmission.create({ data: dto });
+    const submission = await this.prisma.contactSubmission.create({
+      data: dto,
+    });
     await this.mail.sendContactNotification(dto).catch(() => null);
     return submission;
   }

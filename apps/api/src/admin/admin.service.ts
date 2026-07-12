@@ -1,7 +1,18 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const;
+const ORDER_STATUSES = [
+  'PENDING',
+  'CONFIRMED',
+  'PREPARING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+] as const;
 type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 const PRODUCT_STATUSES = ['DRAFT', 'ACTIVE', 'ARCHIVED'] as const;
@@ -15,15 +26,18 @@ export class AdminService {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const [todayOrders, pendingOrders, lowStockCount, revenueAgg] = await Promise.all([
-      this.prisma.order.count({ where: { createdAt: { gte: todayStart } } }),
-      this.prisma.order.count({ where: { status: 'PENDING' } }),
-      this.prisma.product.count({ where: { status: 'ACTIVE', stockQuantity: { lte: 5 } } }),
-      this.prisma.order.aggregate({
-        where: { createdAt: { gte: todayStart } },
-        _sum: { totalKurus: true },
-      }),
-    ]);
+    const [todayOrders, pendingOrders, lowStockCount, revenueAgg] =
+      await Promise.all([
+        this.prisma.order.count({ where: { createdAt: { gte: todayStart } } }),
+        this.prisma.order.count({ where: { status: 'PENDING' } }),
+        this.prisma.product.count({
+          where: { status: 'ACTIVE', stockQuantity: { lte: 5 } },
+        }),
+        this.prisma.order.aggregate({
+          where: { createdAt: { gte: todayStart } },
+          _sum: { totalKurus: true },
+        }),
+      ]);
 
     return {
       todayOrders,
@@ -50,9 +64,10 @@ export class AdminService {
   }
 
   async getOrders(status?: string, page = 1, limit = 25) {
-    const where = status && ORDER_STATUSES.includes(status as OrderStatus)
-      ? { status: status as OrderStatus }
-      : {};
+    const where =
+      status && ORDER_STATUSES.includes(status as OrderStatus)
+        ? { status: status as OrderStatus }
+        : {};
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
@@ -106,9 +121,10 @@ export class AdminService {
   // ── Products ──────────────────────────────────────────────────────────────
 
   async getProducts(status?: string, page = 1, limit = 25) {
-    const where = status && PRODUCT_STATUSES.includes(status as ProductStatus)
-      ? { status: status as ProductStatus }
-      : {};
+    const where =
+      status && PRODUCT_STATUSES.includes(status as ProductStatus)
+        ? { status: status as ProductStatus }
+        : {};
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -125,7 +141,11 @@ export class AdminService {
           currency: true,
           stockQuantity: true,
           category: { select: { id: true, name: true } },
-          images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { url: true, alt: true } },
+          images: {
+            take: 1,
+            orderBy: { sortOrder: 'asc' },
+            select: { url: true, alt: true },
+          },
           createdAt: true,
         },
       }),
@@ -176,16 +196,19 @@ export class AdminService {
     });
   }
 
-  async updateProduct(id: string, dto: {
-    name?: string;
-    slug?: string;
-    description?: string;
-    priceKurus?: number;
-    stockQuantity?: number;
-    status?: string;
-    categoryId?: string;
-    imageUrls?: string[];
-  }) {
+  async updateProduct(
+    id: string,
+    dto: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      priceKurus?: number;
+      stockQuantity?: number;
+      status?: string;
+      categoryId?: string;
+      imageUrls?: string[];
+    },
+  ) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException('Ürün bulunamadı.');
 
@@ -205,7 +228,11 @@ export class AdminService {
         ...rest,
         ...(status ? { status: status as ProductStatus } : {}),
         ...(imageUrls !== undefined
-          ? { images: { create: imageUrls.map((url, sortOrder) => ({ url, sortOrder })) } }
+          ? {
+              images: {
+                create: imageUrls.map((url, sortOrder) => ({ url, sortOrder })),
+              },
+            }
           : {}),
       },
       include: {
@@ -254,14 +281,17 @@ export class AdminService {
     });
   }
 
-  async updateCategory(id: string, dto: {
-    name?: string;
-    slug?: string;
-    description?: string;
-    isVisible?: boolean;
-    sortOrder?: number;
-    parentId?: string | null;
-  }) {
+  async updateCategory(
+    id: string,
+    dto: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      isVisible?: boolean;
+      sortOrder?: number;
+      parentId?: string | null;
+    },
+  ) {
     const cat = await this.prisma.category.findUnique({ where: { id } });
     if (!cat) throw new NotFoundException('Kategori bulunamadı.');
     return this.prisma.category.update({
@@ -353,7 +383,11 @@ export class AdminService {
     return customer;
   }
 
-  async setCustomerAdmin(id: string, isAdmin: boolean, requesterFirebaseUid: string) {
+  async setCustomerAdmin(
+    id: string,
+    isAdmin: boolean,
+    requesterFirebaseUid: string,
+  ) {
     const customer = await this.prisma.customer.findUnique({ where: { id } });
     if (!customer) throw new NotFoundException('Müşteri bulunamadı.');
     if (customer.firebaseUid === requesterFirebaseUid && !isAdmin) {

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomInt } from 'node:crypto';
 import { isValidTurkishPhone } from '../common/phone.util';
 import { DiscountsService } from '../discounts/discounts.service';
@@ -154,8 +159,14 @@ export class OrdersService {
 
     let discountCode: string | null = null;
     let discountKurus = 0;
-    if (typeof createOrderDto.discountCode === 'string' && createOrderDto.discountCode.trim()) {
-      const result = await this.discounts.validateCode(createOrderDto.discountCode, subtotalKurus);
+    if (
+      typeof createOrderDto.discountCode === 'string' &&
+      createOrderDto.discountCode.trim()
+    ) {
+      const result = await this.discounts.validateCode(
+        createOrderDto.discountCode,
+        subtotalKurus,
+      );
       discountCode = result.code;
       discountKurus = result.discountKurus;
     }
@@ -191,7 +202,9 @@ export class OrdersService {
       return tx.order.create({
         data: {
           orderNumber: this.createOrderNumber(),
-          ...(createOrderDto.customerId && { customerId: createOrderDto.customerId }),
+          ...(createOrderDto.customerId && {
+            customerId: createOrderDto.customerId,
+          }),
           customerName: customer.customerName,
           customerEmail: customer.customerEmail,
           customerPhone: customer.customerPhone,

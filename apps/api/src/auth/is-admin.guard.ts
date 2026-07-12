@@ -11,7 +11,9 @@ export class IsAdminGuard implements CanActivate {
   constructor(private readonly customers: CustomersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<{ user?: { uid: string } }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: { uid: string } }>();
     const uid = request.user?.uid;
     if (!uid) return false;
 

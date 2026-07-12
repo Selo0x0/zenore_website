@@ -47,17 +47,6 @@ export default function AdminKategorilerPage() {
 
   const firstInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    void loadCategories();
-  }, [user]);
-
-  useEffect(() => {
-    if (formMode !== "none") {
-      setTimeout(() => firstInputRef.current?.focus(), 50);
-    }
-  }, [formMode]);
-
   async function loadCategories() {
     if (!user) return;
     try {
@@ -70,6 +59,19 @@ export default function AdminKategorilerPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!user) return;
+    // loadCategories eventually calls setState after its awaits
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadCategories();
+  }, [user]);
+
+  useEffect(() => {
+    if (formMode !== "none") {
+      setTimeout(() => firstInputRef.current?.focus(), 50);
+    }
+  }, [formMode]);
 
   function openCreate() {
     setForm(emptyForm);

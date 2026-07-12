@@ -64,17 +64,6 @@ export default function AdminIndirimKodlariPage() {
 
   const firstInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    void loadCodes();
-  }, [user]);
-
-  useEffect(() => {
-    if (formMode !== "none") {
-      setTimeout(() => firstInputRef.current?.focus(), 50);
-    }
-  }, [formMode]);
-
   async function loadCodes() {
     if (!user) return;
     try {
@@ -87,6 +76,19 @@ export default function AdminIndirimKodlariPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!user) return;
+    // loadCodes eventually calls setState after its awaits
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadCodes();
+  }, [user]);
+
+  useEffect(() => {
+    if (formMode !== "none") {
+      setTimeout(() => firstInputRef.current?.focus(), 50);
+    }
+  }, [formMode]);
 
   function openCreate() {
     setForm(emptyForm);

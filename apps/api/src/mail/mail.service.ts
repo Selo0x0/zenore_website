@@ -59,9 +59,14 @@ ${data.subject ? `<p><strong>Konu:</strong> ${data.subject}</p>` : ''}
     }
   }
 
-  async sendOrderConfirmation(order: OrderEmailData, to: string): Promise<void> {
+  async sendOrderConfirmation(
+    order: OrderEmailData,
+    to: string,
+  ): Promise<void> {
     try {
-      this.logger.log(`Sending order confirmation to ${to} for ${order.orderNumber}`);
+      this.logger.log(
+        `Sending order confirmation to ${to} for ${order.orderNumber}`,
+      );
       const result = await this.resend.emails.send({
         from: this.from,
         to: to,

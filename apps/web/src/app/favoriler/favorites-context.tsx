@@ -48,12 +48,10 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      setFavorites([]);
-      return;
-    }
+    if (!user) return;
 
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     user
@@ -118,13 +116,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const visibleFavorites = user ? favorites : [];
+
   return (
     <FavoritesContext.Provider
       value={{
-        favorites,
-        count: favorites.length,
+        favorites: visibleFavorites,
+        count: visibleFavorites.length,
         loading,
-        isFavorited: (productId) => favorites.some((f) => f.productId === productId),
+        isFavorited: (productId) => visibleFavorites.some((f) => f.productId === productId),
         toggleFavorite,
       }}
     >

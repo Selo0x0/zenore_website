@@ -65,6 +65,8 @@ export default function AdminSiparislerPage() {
   }
 
   useEffect(() => {
+    // fetchOrders sets loading=true synchronously before its first await
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchOrders(statusFilter);
   }, [user, statusFilter]);
 

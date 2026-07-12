@@ -4,7 +4,9 @@ import type { Request } from 'express';
 
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): DecodedIdToken => {
-    const request = ctx.switchToHttp().getRequest<Request & { user: DecodedIdToken }>();
+    const request = ctx
+      .switchToHttp()
+      .getRequest<Request & { user: DecodedIdToken }>();
     return request.user;
   },
 );
