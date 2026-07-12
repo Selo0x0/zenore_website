@@ -39,18 +39,13 @@ export function ProductGrid({ products, categories }: Props) {
   );
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-5 py-12 sm:px-8 lg:px-10">
+    <section id="koleksiyon" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-12 sm:px-8 lg:px-10">
       {/* Header */}
-      <div className="mb-10 border-b border-neutral-200 pb-8">
-        <p className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-neutral-400">
-          Zenore
-        </p>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <h1 className="text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
-            Hakiki deri.<br className="hidden sm:block" /> Her gün.
-          </h1>
-          <p className="text-sm text-neutral-400">{products.length} ürün</p>
-        </div>
+      <div className="mb-10 flex items-end justify-between border-b border-neutral-200 pb-6">
+        <h2 className="text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl">
+          Koleksiyon
+        </h2>
+        <p className="text-sm text-neutral-400">{products.length} ürün</p>
       </div>
 
       {/* Search + category filter */}
