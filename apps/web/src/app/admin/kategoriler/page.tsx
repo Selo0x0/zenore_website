@@ -13,7 +13,7 @@ type Category = {
   sortOrder: number;
   parentId: string | null;
   parent: { id: string; name: string } | null;
-  _count: { products: number };
+  _count: { products: number; children: number };
 };
 
 function toSlug(str: string) {
@@ -42,6 +42,8 @@ export default function AdminKategorilerPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
 
   const firstInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,6 +143,25 @@ export default function AdminKategorilerPage() {
     }
   }
 
+  async function handleDelete(id: string) {
+    if (!user) return;
+    setDeletingId(id);
+    try {
+      const token = await user.getIdToken();
+      await apiFetch(`/admin/categories/${id}`, token, { method: "DELETE" });
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      setSavedMsg("Kategori silindi");
+      setTimeout(() => setSavedMsg(null), 2500);
+      setDeleteTarget(null);
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "Silme işlemi başarısız.";
+      setErrorToast(msg);
+      setTimeout(() => setErrorToast(null), 4000);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   async function toggleVisibility(cat: Category) {
     if (!user) return;
     setTogglingId(cat.id);
@@ -230,17 +251,26 @@ export default function AdminKategorilerPage() {
                     </button>
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(cat)}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50 hover:text-neutral-950"
-                    >
-                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                      Düzenle
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(cat)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50 hover:text-neutral-950"
+                      >
+                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Düzenle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(cat)}
+                        className="rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                      >
+                        Sil
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -360,6 +390,78 @@ export default function AdminKategorilerPage() {
                 İptal
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteTarget(null); }}
+        >
+          <div className="relative z-50 w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-neutral-950/5">
+            {deleteTarget._count.products > 0 || deleteTarget._count.children > 0 ? (
+              <>
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-amber-50">
+                  <svg className="h-5 w-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <h2 className="text-base font-semibold text-neutral-950">
+                  &ldquo;{deleteTarget.name}&rdquo; silinemez
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-neutral-500">
+                  {deleteTarget._count.products > 0 && (
+                    <>Bu kategoride <strong className="text-neutral-700">{deleteTarget._count.products} ürün</strong> var. </>
+                  )}
+                  {deleteTarget._count.children > 0 && (
+                    <>Bu kategorinin <strong className="text-neutral-700">{deleteTarget._count.children} alt kategorisi</strong> var. </>
+                  )}
+                  Silmeden önce bunları başka bir kategoriye taşıyın.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="mt-6 w-full rounded-lg border border-neutral-200 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-neutral-400"
+                >
+                  Anladım
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-red-50">
+                  <svg className="h-5 w-5 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+                <h2 className="text-base font-semibold text-neutral-950">
+                  &ldquo;{deleteTarget.name}&rdquo; silinsin mi?
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-neutral-500">
+                  Bu işlem geri alınamaz.
+                </p>
+                <div className="mt-6 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(deleteTarget.id)}
+                    disabled={deletingId === deleteTarget.id}
+                    className="flex-1 rounded-lg bg-red-600 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {deletingId === deleteTarget.id ? "Siliniyor..." : "Evet, Sil"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(null)}
+                    className="flex-1 rounded-lg border border-neutral-200 py-2.5 text-sm font-medium text-neutral-600 transition hover:border-neutral-400"
+                  >
+                    Vazgeç
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

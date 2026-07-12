@@ -230,7 +230,10 @@ export class AdminService {
   async getCategories() {
     return this.prisma.category.findMany({
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      include: { _count: { select: { products: true } }, parent: { select: { id: true, name: true } } },
+      include: {
+        _count: { select: { products: true, children: true } },
+        parent: { select: { id: true, name: true } },
+      },
     });
   }
 
@@ -244,7 +247,10 @@ export class AdminService {
   }) {
     return this.prisma.category.create({
       data: dto,
-      include: { _count: { select: { products: true } }, parent: { select: { id: true, name: true } } },
+      include: {
+        _count: { select: { products: true, children: true } },
+        parent: { select: { id: true, name: true } },
+      },
     });
   }
 
@@ -261,8 +267,33 @@ export class AdminService {
     return this.prisma.category.update({
       where: { id },
       data: dto,
-      include: { _count: { select: { products: true } }, parent: { select: { id: true, name: true } } },
+      include: {
+        _count: { select: { products: true, children: true } },
+        parent: { select: { id: true, name: true } },
+      },
     });
+  }
+
+  async deleteCategory(id: string) {
+    const cat = await this.prisma.category.findUnique({
+      where: { id },
+      include: { _count: { select: { products: true, children: true } } },
+    });
+    if (!cat) throw new NotFoundException('Kategori bulunamadı.');
+
+    if (cat._count.products > 0) {
+      throw new BadRequestException(
+        `Bu kategoride ${cat._count.products} ürün var. Silmeden önce ürünleri başka bir kategoriye taşıyın.`,
+      );
+    }
+    if (cat._count.children > 0) {
+      throw new BadRequestException(
+        `Bu kategorinin ${cat._count.children} alt kategorisi var. Silmeden önce alt kategorileri taşıyın veya silin.`,
+      );
+    }
+
+    await this.prisma.category.delete({ where: { id } });
+    return { success: true };
   }
 
   // ── Customers ─────────────────────────────────────────────────────────────

@@ -88,6 +88,11 @@ export class AdminController {
     return this.adminService.updateCategory(id, body as any);
   }
 
+  @Delete('categories/:id')
+  deleteCategory(@Param('id') id: string) {
+    return this.adminService.deleteCategory(id);
+  }
+
   // ── Customers ─────────────────────────────────────────────────────────────
 
   @Get('customers')
