@@ -17,6 +17,10 @@ type AboutContent = {
   imageUrl: string;
 };
 
+function resolveImageUrl(value: string) {
+  return value.startsWith("http") ? value : `${apiUrl}/images/products/${value}`;
+}
+
 async function getAbout(): Promise<AboutContent> {
   try {
     const res = await fetch(`${apiUrl}/site-content/about`, {
@@ -66,11 +70,12 @@ export default async function HakkimizdaPage() {
         </div>
         <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
           <Image
-            src={about.imageUrl}
+            src={resolveImageUrl(about.imageUrl)}
             alt="Zenore atölye"
             fill
             className="object-cover"
             sizes="(min-width: 1024px) 50vw, 100vw"
+            unoptimized
           />
         </div>
       </section>

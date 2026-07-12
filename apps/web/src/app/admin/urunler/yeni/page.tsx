@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { apiFetch } from "@/lib/api";
+import { ImageUploadField } from "../../image-upload-field";
 
 type Category = { id: string; name: string };
 
@@ -180,21 +181,15 @@ export default function YeniUrunPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Görsel URL'leri</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Görseller</span>
           {imageUrls.map((url, i) => (
             <div key={i} className="flex gap-2">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => updateImageUrl(i, e.target.value)}
-                placeholder="https://... veya dosya-adi.png"
-                className={`flex-1 ${inputCls}`}
-              />
+              <ImageUploadField value={url} onChange={(v) => updateImageUrl(i, v)} className="flex-1" />
               {imageUrls.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeImageUrl(i)}
-                  className="shrink-0 px-3 text-neutral-400 hover:text-red-500"
+                  className="shrink-0 self-start px-3 pt-2 text-neutral-400 hover:text-red-500"
                 >
                   ✕
                 </button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { apiUrl } from "../../products/product-data";
+import { ImageUploadField } from "../image-upload-field";
 
 type Value = { title: string; description: string };
 type AboutContent = {
@@ -140,13 +141,8 @@ export default function AdminHakkimizdaPage() {
               className="resize-none border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
             />
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-neutral-500">Görsel URL</label>
-              <input
-                type="text"
-                value={form.imageUrl}
-                onChange={(e) => setForm((p) => ({ ...p, imageUrl: e.target.value }))}
-                className="border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
-              />
+              <label className="text-xs font-medium text-neutral-500">Görsel</label>
+              <ImageUploadField value={form.imageUrl} onChange={(v) => setForm((p) => ({ ...p, imageUrl: v }))} />
             </div>
           </div>
         </div>
