@@ -19,10 +19,10 @@ type AdminReview = {
 };
 
 const tabs: { value: "ALL" | ReviewStatus; label: string }[] = [
+  { value: "ALL", label: "Tümü" },
   { value: "PENDING", label: "Bekliyor" },
   { value: "APPROVED", label: "Onaylandı" },
   { value: "REJECTED", label: "Reddedildi" },
-  { value: "ALL", label: "Tümü" },
 ];
 
 function statusBadge(status: ReviewStatus) {
@@ -47,7 +47,7 @@ export default function AdminYorumlarPage() {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<AdminReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"ALL" | ReviewStatus>("PENDING");
+  const [tab, setTab] = useState<"ALL" | ReviewStatus>("ALL");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { ProductImage } from "@/app/product-image";
@@ -59,6 +60,9 @@ export default function OdemePage() {
   const [discountError, setDiscountError] = useState<string | null>(null);
 
   const totalKurus = subtotalKurus - (appliedDiscount?.discountKurus ?? 0);
+
+  const selectedAddress = addresses.find((a) => a.id === selectedId);
+  const selectedAddressInvalid = !!selectedAddress && !isValidPhone(selectedAddress.phone);
 
   async function applyDiscount() {
     if (!discountInput.trim()) return;
@@ -251,6 +255,15 @@ export default function OdemePage() {
                         <p className="mt-1 text-sm text-neutral-600">
                           {addr.address}, {addr.district}, {addr.city}
                         </p>
+                        {!isValidPhone(addr.phone) && (
+                          <p className="mt-2 text-xs font-medium text-red-600">
+                            Bu adresin telefon numarası geçersiz. Devam etmeden önce{" "}
+                            <Link href="/hesabim" className="underline underline-offset-2">
+                              Adres Defteri&apos;nden
+                            </Link>{" "}
+                            güncelleyin veya farklı bir adres seçin.
+                          </p>
+                        )}
                       </div>
                     </label>
                   ))}
@@ -460,8 +473,8 @@ export default function OdemePage() {
 
               <button
                 type="submit"
-                disabled={placing}
-                className="flex h-12 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-60"
+                disabled={placing || selectedAddressInvalid}
+                className="flex h-12 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {placing ? "İşleniyor..." : "Siparişi Onayla"}
               </button>
