@@ -27,7 +27,7 @@ type Order = {
   items: { quantity: number }[];
 };
 
-type OrderDetail = Order & { items: OrderItem[] };
+type OrderDetail = Omit<Order, "items"> & { items: OrderItem[] };
 
 const ALL_STATUSES = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "CANCELLED"] as const;
 
