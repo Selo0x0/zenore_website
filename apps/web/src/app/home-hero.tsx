@@ -1,7 +1,7 @@
 export function HomeHero() {
   return (
     <section className="bg-neutral-950 text-white">
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
+      <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400">
           Zenore
         </p>
