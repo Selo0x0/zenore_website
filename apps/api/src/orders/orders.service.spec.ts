@@ -115,11 +115,18 @@ describe('OrdersService', () => {
     },
   };
 
+  const mail = { sendOrderConfirmation: jest.fn() };
+  const discounts = { validateCode: jest.fn() };
+
   let service: OrdersService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new OrdersService(prisma as unknown as PrismaService);
+    service = new OrdersService(
+      prisma as unknown as PrismaService,
+      mail as any,
+      discounts as any,
+    );
   });
 
   it('creates an order using database product prices', async () => {

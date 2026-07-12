@@ -56,6 +56,8 @@ type Order = {
   currency: string;
   subtotalKurus: number;
   shippingKurus: number;
+  discountCode: string | null;
+  discountKurus: number;
   totalKurus: number;
   createdAt: string;
   shippingName: string;
@@ -865,6 +867,16 @@ export default function HesabimPage() {
                           <span className="text-neutral-500">Kargo</span>
                           <span className="font-medium text-green-600">Ücretsiz</span>
                         </div>
+                        {selectedOrder.discountKurus > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-neutral-500">
+                              İndirim{selectedOrder.discountCode ? ` (${selectedOrder.discountCode})` : ""}
+                            </span>
+                            <span className="font-medium text-emerald-600">
+                              -{formatPrice(selectedOrder.discountKurus, selectedOrder.currency)}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold">
                           <span>Toplam</span>
                           <span>

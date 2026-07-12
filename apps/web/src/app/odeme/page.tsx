@@ -43,6 +43,8 @@ type Address = {
 
 const emptyForm = { fullName: "", phone: "", city: "", district: "", address: "" };
 
+type AppliedDiscount = { code: string; discountKurus: number };
+
 export default function OdemePage() {
   const { user, loading: authLoading } = useAuth();
   const { items, subtotalKurus, clearCart } = useCart();
@@ -54,6 +56,40 @@ export default function OdemePage() {
   const [newForm, setNewForm] = useState(emptyForm);
   const [placing, setPlacing] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const [discountInput, setDiscountInput] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+
+  const totalKurus = subtotalKurus - (appliedDiscount?.discountKurus ?? 0);
+
+  async function applyDiscount() {
+    if (!discountInput.trim()) return;
+    setDiscountLoading(true);
+    setDiscountError(null);
+    try {
+      const res = await fetch(`${apiUrl}/discount-codes/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: discountInput, subtotalKurus }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? "Geçersiz kod");
+      setAppliedDiscount({ code: data.code, discountKurus: data.discountKurus });
+    } catch (err) {
+      setDiscountError(err instanceof Error ? err.message : "Geçersiz kod");
+      setAppliedDiscount(null);
+    } finally {
+      setDiscountLoading(false);
+    }
+  }
+
+  function removeDiscount() {
+    setAppliedDiscount(null);
+    setDiscountInput("");
+    setDiscountError(null);
+  }
 
   function showToast(msg: string) {
     setToastMsg(msg);
@@ -142,6 +178,7 @@ export default function OdemePage() {
           shippingDistrict: shipping.district,
           shippingAddress: shipping.address,
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          ...(appliedDiscount && { discountCode: appliedDiscount.code }),
         }),
       });
       clearCart();
@@ -355,6 +392,52 @@ export default function OdemePage() {
                 ))}
               </div>
 
+              {/* Discount code */}
+              <div className="border-b border-neutral-100 pb-4">
+                {appliedDiscount ? (
+                  <div className="flex items-center justify-between gap-3 bg-emerald-50 px-3 py-2.5">
+                    <div className="flex items-center gap-2 text-sm">
+                      <svg className="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span className="font-medium text-emerald-800">{appliedDiscount.code}</span>
+                      <span className="text-emerald-600">uygulandı</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeDiscount}
+                      className="text-xs font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
+                    >
+                      Kaldır
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={discountInput}
+                        onChange={(e) => {
+                          setDiscountInput(e.target.value.toUpperCase());
+                          setDiscountError(null);
+                        }}
+                        placeholder="İndirim kodu"
+                        className="flex-1 border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm uppercase outline-none transition focus:border-neutral-950 focus:bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyDiscount}
+                        disabled={discountLoading || !discountInput.trim()}
+                        className="shrink-0 border border-neutral-950 px-4 py-2 text-xs font-medium text-neutral-950 transition hover:bg-neutral-950 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        {discountLoading ? "..." : "Uygula"}
+                      </button>
+                    </div>
+                    {discountError && <p className="text-xs text-red-600">{discountError}</p>}
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col gap-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Ara Toplam</span>
@@ -364,12 +447,18 @@ export default function OdemePage() {
                   <span className="text-neutral-500">Kargo</span>
                   <span className="font-medium text-green-600">Ücretsiz</span>
                 </div>
+                {appliedDiscount && (
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">İndirim ({appliedDiscount.code})</span>
+                    <span className="font-medium text-emerald-600">-{formatPrice(appliedDiscount.discountKurus, currency)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between border-t border-neutral-200 pt-4">
                 <span className="font-semibold">Toplam</span>
                 <span className="text-lg font-semibold">
-                  {formatPrice(subtotalKurus, currency)}
+                  {formatPrice(totalKurus, currency)}
                 </span>
               </div>
 

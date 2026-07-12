@@ -29,6 +29,27 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model DiscountCode {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  type          DiscountType
+  value         Int
+  isActive      Boolean      @default(true)
+  usageLimit    Int?
+  usageCount    Int          @default(0)
+  minOrderKurus Int?
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([isActive])
+}
+
 model Product {
   id            String        @id @default(cuid())
   categoryId    String?
@@ -161,6 +182,8 @@ model Order {
   currency        String        @default("TRY")
   subtotalKurus   Int
   shippingKurus   Int           @default(0)
+  discountCode    String?
+  discountKurus   Int           @default(0)
   totalKurus      Int
   items           OrderItem[]
   createdAt       DateTime      @default(now())

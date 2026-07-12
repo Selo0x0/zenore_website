@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
+import { DiscountsService } from '../discounts/discounts.service';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -14,6 +15,7 @@ export type CreateOrderDto = {
   shippingDistrict?: unknown;
   shippingAddress?: unknown;
   items?: unknown;
+  discountCode?: unknown;
 };
 
 type NormalizedOrderItem = {
@@ -33,6 +35,8 @@ const orderSelect = {
   currency: true,
   subtotalKurus: true,
   shippingKurus: true,
+  discountCode: true,
+  discountKurus: true,
   totalKurus: true,
   createdAt: true,
   items: {
@@ -57,6 +61,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
+    private readonly discounts: DiscountsService,
   ) {}
 
   async findByOrderNumber(orderNumber: string, customerId: string) {
@@ -146,7 +151,16 @@ export class OrdersService {
       0,
     );
     const shippingKurus = 0;
-    const totalKurus = subtotalKurus + shippingKurus;
+
+    let discountCode: string | null = null;
+    let discountKurus = 0;
+    if (typeof createOrderDto.discountCode === 'string' && createOrderDto.discountCode.trim()) {
+      const result = await this.discounts.validateCode(createOrderDto.discountCode, subtotalKurus);
+      discountCode = result.code;
+      discountKurus = result.discountKurus;
+    }
+
+    const totalKurus = subtotalKurus + shippingKurus - discountKurus;
 
     const order = await this.prisma.$transaction(async (tx) => {
       for (const item of orderItems) {
@@ -167,6 +181,13 @@ export class OrdersService {
         }
       }
 
+      if (discountCode) {
+        await tx.discountCode.update({
+          where: { code: discountCode },
+          data: { usageCount: { increment: 1 } },
+        });
+      }
+
       return tx.order.create({
         data: {
           orderNumber: this.createOrderNumber(),
@@ -182,6 +203,8 @@ export class OrdersService {
           currency,
           subtotalKurus,
           shippingKurus,
+          discountCode,
+          discountKurus,
           totalKurus,
           items: {
             create: orderItems,

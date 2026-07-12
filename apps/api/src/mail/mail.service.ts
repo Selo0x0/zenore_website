@@ -13,6 +13,8 @@ type OrderEmailData = {
   totalKurus: number;
   subtotalKurus: number;
   shippingKurus: number;
+  discountCode?: string | null;
+  discountKurus?: number;
   currency: string;
   items: OrderItem[];
 };
@@ -150,6 +152,14 @@ ${data.subject ? `<p><strong>Konu:</strong> ${data.subject}</p>` : ''}
                 <td style="padding:4px 0;font-size:14px;color:#555;">Kargo</td>
                 <td style="padding:4px 0;font-size:14px;color:#27ae60;text-align:right;font-weight:600;">Ücretsiz</td>
               </tr>`
+              }
+              ${
+                order.discountKurus && order.discountKurus > 0
+                  ? `<tr>
+                <td style="padding:4px 0;font-size:14px;color:#555;">İndirim${order.discountCode ? ` (${order.discountCode})` : ''}</td>
+                <td style="padding:4px 0;font-size:14px;color:#27ae60;text-align:right;">-${formatPrice(order.discountKurus, order.currency)}</td>
+              </tr>`
+                  : ''
               }
               <tr>
                 <td style="padding:12px 0 0;font-size:16px;font-weight:700;color:#111;">Toplam</td>
