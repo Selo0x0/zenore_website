@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ProductCard } from "./product-card";
+import { EmptyState, emptyStateIcons } from "./empty-state";
 import { type Category, type Product } from "./products/product-data";
 
 type Props = {
@@ -125,20 +126,12 @@ export function ProductGrid({ products, categories }: Props) {
 
       {/* Empty state */}
       {filtered.length === 0 ? (
-        <div className="flex min-h-64 flex-col items-center justify-center gap-3 border border-dashed border-neutral-200 bg-white py-16 text-center">
-          <p className="text-sm font-medium text-neutral-950">
-            {search ? `"${search}" için sonuç bulunamadı` : "Bu kategoride ürün yok"}
-          </p>
-          {(search || activeCategory !== "all") && (
-            <button
-              type="button"
-              onClick={() => { setSearch(""); setActiveCategory("all"); }}
-              className="text-xs text-neutral-400 underline underline-offset-2 hover:text-neutral-950"
-            >
-              Tüm ürünleri göster
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={emptyStateIcons.search}
+          title={search ? `"${search}" için sonuç bulunamadı` : "Bu kategoride ürün yok"}
+          actionLabel={(search || activeCategory !== "all") ? "Tüm ürünleri göster" : undefined}
+          onAction={() => { setSearch(""); setActiveCategory("all"); }}
+        />
       ) : (
         <>
           {(search || activeCategory !== "all") && (

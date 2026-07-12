@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ProductImage } from "../product-image";
 import { formatPrice } from "../products/product-data";
 import { useCart } from "./cart-context";
+import { EmptyState, emptyStateIcons } from "../empty-state";
 
 export default function CartPage() {
   const { items, subtotalKurus, updateQuantity, removeItem, clearCart } = useCart();
@@ -20,12 +21,13 @@ export default function CartPage() {
         </header>
 
         {items.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center gap-4 border border-dashed border-neutral-300 bg-white p-8 text-center">
-            <p className="text-neutral-500">Sepetiniz boş.</p>
-            <Link href="/" className="font-medium text-neutral-950 hover:text-neutral-600">
-              Alışverişe Başla
-            </Link>
-          </div>
+          <EmptyState
+            icon={emptyStateIcons.bag}
+            title="Sepetiniz boş"
+            description="Beğendiğiniz ürünleri sepete ekleyerek alışverişe başlayın."
+            actionLabel="Alışverişe Başla"
+            actionHref="/"
+          />
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
             <div className="flex flex-col gap-4">

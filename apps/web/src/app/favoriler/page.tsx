@@ -8,6 +8,7 @@ import { ProductImage } from "@/app/product-image";
 import { formatPrice } from "@/app/products/product-data";
 import { useFavorites } from "./favorites-context";
 import { FavoriteButton } from "./favorite-button";
+import { EmptyState, emptyStateIcons } from "@/app/empty-state";
 
 export default function FavorilerPage() {
   const { user, loading: authLoading } = useAuth();
@@ -50,31 +51,13 @@ export default function FavorilerPage() {
         </header>
 
         {favorites.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center gap-5 border border-dashed border-neutral-300 bg-white p-8 text-center">
-            <svg
-              className="h-12 w-12 text-neutral-300"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <div>
-              <p className="font-semibold text-neutral-700">Henüz favori ürününüz yok</p>
-              <p className="mt-1 text-sm text-neutral-400">
-                Ürünlerin üzerindeki kalp ikonuna tıklayarak favorilerinize ekleyin.
-              </p>
-            </div>
-            <Link
-              href="/"
-              className="bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
-            >
-              Alışverişe Başla
-            </Link>
-          </div>
+          <EmptyState
+            icon={emptyStateIcons.heart}
+            title="Henüz favori ürününüz yok"
+            description="Ürünlerin üzerindeki kalp ikonuna tıklayarak favorilerinize ekleyin."
+            actionLabel="Alışverişe Başla"
+            actionHref="/"
+          />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {favorites.map((item) => (
