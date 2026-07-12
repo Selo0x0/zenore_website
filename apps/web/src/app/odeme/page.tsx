@@ -8,6 +8,7 @@ import { useCart } from "@/app/cart/cart-context";
 import { apiFetch, apiUrl } from "@/lib/api";
 import { formatPrice } from "@/app/products/product-data";
 import { PROVINCES } from "@/lib/turkey-locations";
+import { isValidPhone, sanitizePhoneInput } from "@/lib/phone";
 import { Toast } from "@/app/toast";
 
 function toTurkishError(msg: string): string {
@@ -23,11 +24,6 @@ function toTurkishError(msg: string): string {
   if (m.includes("name") || m.includes("required") || m.includes("between"))
     return "Lütfen tüm zorunlu alanları eksiksiz doldurunuz.";
   return "Bir hata oluştu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.";
-}
-
-function isValidPhone(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  return /^\+?[0-9 ()\-]+$/.test(phone) && digits.length >= 10 && digits.length <= 15;
 }
 
 type Address = {
@@ -308,7 +304,7 @@ export default function OdemePage() {
                         required={selectedId === "new"}
                         type="tel"
                         value={newForm.phone}
-                        onChange={(e) => setNewForm((p) => ({ ...p, phone: e.target.value }))}
+                        onChange={(e) => setNewForm((p) => ({ ...p, phone: sanitizePhoneInput(e.target.value) }))}
                         placeholder="0555 000 00 00"
                         className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
                       />
