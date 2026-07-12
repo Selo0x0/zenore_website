@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -23,6 +24,7 @@ export class OrdersController {
     private readonly customersService: CustomersService,
   ) {}
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post()
   async createOrder(
     @CurrentUser() user: DecodedIdToken,

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ContentService } from './content.service';
 
 class SubmitContactDto {
@@ -19,6 +20,7 @@ export class ContentController {
     return value;
   }
 
+  @Throttle({ default: { limit: 3, ttl: 3600000 } })
   @Post('contact')
   async submitContact(@Body() body: SubmitContactDto) {
     return this.content.submitContact(body);
