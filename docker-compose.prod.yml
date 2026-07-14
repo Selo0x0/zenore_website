@@ -1,0 +1,90 @@
+# Full production stack: postgres + api + web + caddy (reverse proxy, auto-HTTPS).
+# The dev-only docker-compose.yml (postgres alone) is unaffected by this file.
+#
+# Usage:
+#   cp .env.production.example .env.production   # fill in real values first
+#   docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+#
+# "name" pins this to its own Compose project so it never collides with
+# docker-compose.yml's dev postgres container/volume, even though both files
+# live at the repo root.
+name: zenore-prod
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: zenore-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zenore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: zenore-api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: production
+      API_PORT: 4000
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/zenore?schema=public
+      CORS_ORIGIN: https://${DOMAIN}
+      UPLOADS_DIR: /app/uploads
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      SENTRY_DSN: ${SENTRY_DSN}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER}
+      PAYMENT_API_KEY: ${PAYMENT_API_KEY}
+      PAYMENT_SECRET_KEY: ${PAYMENT_SECRET_KEY}
+    volumes:
+      - uploads:/app/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://${DOMAIN}/api
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
+    container_name: zenore-web
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: zenore-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+volumes:
+  postgres_data:
+  uploads:
+  caddy_data:
+  caddy_config:

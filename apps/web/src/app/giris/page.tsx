@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -8,6 +8,14 @@ import { auth } from "@/lib/firebase";
 import { apiUrl } from "@/app/products/product-data";
 
 export default function GirisPage() {
+  return (
+    <Suspense fallback={null}>
+      <GirisForm />
+    </Suspense>
+  );
+}
+
+function GirisForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";

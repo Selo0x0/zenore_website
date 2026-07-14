@@ -1,7 +1,25 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+function apiRemotePattern() {
+  if (!apiUrl) return null;
+  const url = new URL(apiUrl);
+  return {
+    protocol: url.protocol.replace(":", "") as "http" | "https",
+    hostname: url.hostname,
+    ...(url.port && { port: url.port }),
+    pathname: `${url.pathname === "/" ? "" : url.pathname}/images/**`,
+  };
+}
+
+const dynamicPattern = apiRemotePattern();
+
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   images: {
     remotePatterns: [
       {
@@ -20,6 +38,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      ...(dynamicPattern ? [dynamicPattern] : []),
     ],
   },
 };

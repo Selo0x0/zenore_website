@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -8,6 +8,14 @@ import { auth } from "@/lib/firebase";
 import { apiUrl } from "@/app/products/product-data";
 
 export default function KayitPage() {
+  return (
+    <Suspense fallback={null}>
+      <KayitForm />
+    </Suspense>
+  );
+}
+
+function KayitForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";
