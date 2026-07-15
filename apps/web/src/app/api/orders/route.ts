@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { internalApiUrl } from "../../products/product-data";
 
 export async function POST(request: Request) {
   const payload = await request.json();
 
-  const response = await fetch(`${apiUrl}/orders`, {
+  const response = await fetch(`${internalApiUrl}/orders`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

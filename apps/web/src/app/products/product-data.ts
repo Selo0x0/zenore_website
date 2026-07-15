@@ -27,9 +27,15 @@ export type Product = {
 
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
+// Server-side code (Server Components, Route Handlers) runs inside the same
+// Docker network as the API, so it should call the internal service name
+// directly instead of round-tripping out through the public domain and back.
+// Falls back to the public URL for local dev, where there's no such split.
+export const internalApiUrl = process.env.API_INTERNAL_URL ?? apiUrl;
+
 export async function getProducts(): Promise<Product[]> {
   try {
-    const response = await fetch(`${apiUrl}/products`, {
+    const response = await fetch(`${internalApiUrl}/products`, {
       cache: "no-store",
     });
 
@@ -45,8 +51,7 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
   try {
-    const response = await fetch(
-      `${apiUrl}/products?category=${encodeURIComponent(categorySlug)}`,
+    const response = await fetch(`${internalApiUrl}/products?category=${encodeURIComponent(categorySlug)}`,
       { cache: "no-store" },
     );
     if (!response.ok) return [];
@@ -58,7 +63,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
 
 export async function getProduct(slug: string): Promise<Product | null> {
   try {
-    const response = await fetch(`${apiUrl}/products/${slug}`, {
+    const response = await fetch(`${internalApiUrl}/products/${slug}`, {
       cache: "no-store",
     });
 
@@ -74,7 +79,7 @@ export async function getProduct(slug: string): Promise<Product | null> {
 
 export async function getRelatedProducts(slug: string): Promise<Product[]> {
   try {
-    const response = await fetch(`${apiUrl}/products/${slug}/related`, {
+    const response = await fetch(`${internalApiUrl}/products/${slug}/related`, {
       cache: "no-store",
     });
     if (!response.ok) return [];
@@ -86,7 +91,7 @@ export async function getRelatedProducts(slug: string): Promise<Product[]> {
 
 export async function getFeaturedProducts(slug: string): Promise<Product[]> {
   try {
-    const response = await fetch(`${apiUrl}/products/${slug}/featured`, {
+    const response = await fetch(`${internalApiUrl}/products/${slug}/featured`, {
       cache: "no-store",
     });
     if (!response.ok) return [];
@@ -114,7 +119,7 @@ export type ProductReviews = {
 
 export async function getProductReviews(slug: string): Promise<ProductReviews> {
   try {
-    const response = await fetch(`${apiUrl}/products/${slug}/reviews`, {
+    const response = await fetch(`${internalApiUrl}/products/${slug}/reviews`, {
       cache: "no-store",
     });
     if (!response.ok) return { reviews: [], average: 0, count: 0 };
@@ -126,7 +131,7 @@ export async function getProductReviews(slug: string): Promise<ProductReviews> {
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    const res = await fetch(`${apiUrl}/categories`, { cache: "no-store" });
+    const res = await fetch(`${internalApiUrl}/categories`, { cache: "no-store" });
     if (!res.ok) return [];
     return (await res.json()) as Category[];
   } catch {
@@ -136,7 +141,7 @@ export async function getCategories(): Promise<Category[]> {
 
 export async function getCategory(slug: string): Promise<Category | null> {
   try {
-    const res = await fetch(`${apiUrl}/categories/${slug}`, { cache: "no-store" });
+    const res = await fetch(`${internalApiUrl}/categories/${slug}`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as Category;
   } catch {

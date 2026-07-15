@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { apiUrl } from "../products/product-data";
+import { apiUrl, internalApiUrl } from "../products/product-data";
 
 export const metadata: Metadata = {
   title: "Hakkımızda | Zenore",
@@ -23,7 +23,7 @@ function resolveImageUrl(value: string) {
 
 async function getAbout(): Promise<AboutContent> {
   try {
-    const res = await fetch(`${apiUrl}/site-content/about`, {
+    const res = await fetch(`${internalApiUrl}/site-content/about`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error();
