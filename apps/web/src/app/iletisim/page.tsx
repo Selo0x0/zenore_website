@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ContactForm } from "./contact-form";
-import { apiUrl } from "../products/product-data";
+import { internalApiUrl } from "../products/product-data";
 
 export const metadata: Metadata = {
   title: "İletişim | Zenore",
@@ -18,7 +18,7 @@ type ContactContent = {
 
 async function getContact(): Promise<ContactContent> {
   try {
-    const res = await fetch(`${apiUrl}/site-content/contact`, {
+    const res = await fetch(`${internalApiUrl}/site-content/contact`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error();

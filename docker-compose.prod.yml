@@ -63,6 +63,11 @@ services:
         NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
     container_name: zenore-web
     restart: unless-stopped
+    environment:
+      # Server-side code (Server Components, Route Handlers) talks to the API
+      # over Docker's internal network instead of round-tripping through the
+      # public domain. This is a fixed internal value, not user-configurable.
+      API_INTERNAL_URL: http://api:4000
     depends_on:
       - api
 
