@@ -6,6 +6,7 @@ import { FavoriteButton } from "../../favoriler/favorite-button";
 import { ProductGallery } from "./product-gallery";
 import { ProductCarousel } from "./product-carousel";
 import { ProductReviews } from "./product-reviews";
+import { ScrollToTop } from "./scroll-to-top";
 import { BackButton } from "../back-button";
 
 export const dynamic = "force-dynamic";
@@ -66,6 +67,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-950">
+      <ScrollToTop slug={slug} />
       <div className="mx-auto w-full max-w-6xl px-5 pt-8 sm:px-8 lg:px-10">
         <BackButton label="Geri" />
       </div>
