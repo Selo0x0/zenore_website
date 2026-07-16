@@ -1,8 +1,19 @@
+import Image from "next/image";
+
 export function HomeHero() {
   return (
-    <section className="bg-neutral-950 text-white">
-      <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400">
+    <section className="relative overflow-hidden bg-[#3E3B28] text-white">
+      <Image
+        src="/hero_image.jpeg"
+        alt="Hakiki deri Zenore ürünleri — çanta, cüzdan, kartlık ve kemer"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-[80%_center]"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/10" />
+      <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-300">
           Zenore
         </p>
         <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
