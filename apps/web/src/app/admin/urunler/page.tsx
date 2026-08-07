@@ -53,15 +53,25 @@ export default function AdminUrunlerPage() {
   const [page, setPage] = useState(1);
   const pageSize = 25;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const [archiving, setArchiving] = useState<string | null>(null);
-  const [toast, setToast] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmBulk, setConfirmBulk] = useState<"archive" | "delete" | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+
+  function showToast(message: string, type: "success" | "error" = "success") {
+    setToastMsg(message);
+    setToastType(type);
+    setTimeout(() => setToastMsg(null), 2800);
+  }
 
   useEffect(() => {
     if (searchParams.get("saved")) {
       // syncing toast visibility with a one-time URL param, not derived render state
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToast(true);
-      setTimeout(() => setToast(false), 2500);
+      showToast("Ürün başarıyla güncellendi");
       router.replace("/admin/urunler");
     }
   }, []);
@@ -80,7 +90,7 @@ export default function AdminUrunlerPage() {
       setProducts(res.products);
       setTotal(res.total);
     } catch {
-      // ignore
+      showToast("Ürünler yüklenirken bir hata oluştu.", "error");
     } finally {
       setLoading(false);
     }
@@ -90,6 +100,8 @@ export default function AdminUrunlerPage() {
     // fetchProducts sets loading=true synchronously before its first await
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchProducts(tab, page);
+    setSelectedIds(new Set());
+    setConfirmBulk(null);
   }, [user, tab, page]);
 
   function handleTabChange(key: string) {
@@ -97,10 +109,24 @@ export default function AdminUrunlerPage() {
     setPage(1);
   }
 
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) =>
+      prev.size === products.length ? new Set() : new Set(products.map((p) => p.id)),
+    );
+  }
+
   async function handleArchive(id: string, name: string) {
-    if (!confirm(`"${name}" ürününü arşivlemek istediğinizden emin misiniz?`)) return;
     if (!user) return;
-    setArchiving(id);
+    setBusyId(id);
     try {
       const token = await user.getIdToken();
       await apiFetch(`/admin/products/${id}`, token, { method: "DELETE" });
@@ -110,33 +136,88 @@ export default function AdminUrunlerPage() {
           : prev.filter((p) => p.id !== id),
       );
       setTotal((t) => (tab === "ALL" ? t : t - 1));
+      showToast(`"${name}" arşivlendi.`);
     } catch {
-      // ignore
+      showToast(`"${name}" arşivlenemedi.`, "error");
     } finally {
-      setArchiving(null);
+      setBusyId(null);
+      setConfirmingId(null);
     }
   }
 
   async function handleDelete(id: string, name: string) {
-    if (
-      !confirm(
-        `"${name}" ürününü kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`,
-      )
-    )
-      return;
     if (!user) return;
-    setArchiving(id);
+    setBusyId(id);
     try {
       const token = await user.getIdToken();
       await apiFetch(`/admin/products/${id}/permanent`, token, { method: "DELETE" });
       setProducts((prev) => prev.filter((p) => p.id !== id));
       setTotal((t) => t - 1);
+      showToast(`"${name}" kalıcı olarak silindi.`);
     } catch {
-      // ignore
+      showToast(`"${name}" silinemedi.`, "error");
     } finally {
-      setArchiving(null);
+      setBusyId(null);
+      setConfirmingId(null);
     }
   }
+
+  async function handleBulkArchive() {
+    if (!user) return;
+    const ids = [...selectedIds];
+    setBulkBusy(true);
+    try {
+      const token = await user.getIdToken();
+      const results = await Promise.allSettled(
+        ids.map((id) => apiFetch(`/admin/products/${id}`, token, { method: "DELETE" })),
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      setProducts((prev) =>
+        tab === "ALL"
+          ? prev.map((p) => (selectedIds.has(p.id) ? { ...p, status: "ARCHIVED" as const } : p))
+          : prev.filter((p) => !selectedIds.has(p.id)),
+      );
+      setTotal((t) => (tab === "ALL" ? t : t - (ids.length - failed)));
+      setSelectedIds(new Set());
+      showToast(
+        failed > 0
+          ? `${ids.length - failed} ürün arşivlendi, ${failed} ürün başarısız oldu.`
+          : `${ids.length} ürün arşivlendi.`,
+        failed > 0 ? "error" : "success",
+      );
+    } finally {
+      setBulkBusy(false);
+      setConfirmBulk(null);
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!user) return;
+    const ids = [...selectedIds];
+    setBulkBusy(true);
+    try {
+      const token = await user.getIdToken();
+      const results = await Promise.allSettled(
+        ids.map((id) => apiFetch(`/admin/products/${id}/permanent`, token, { method: "DELETE" })),
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id)));
+      setTotal((t) => t - (ids.length - failed));
+      setSelectedIds(new Set());
+      showToast(
+        failed > 0
+          ? `${ids.length - failed} ürün silindi, ${failed} ürün başarısız oldu.`
+          : `${ids.length} ürün kalıcı olarak silindi.`,
+        failed > 0 ? "error" : "success",
+      );
+    } finally {
+      setBulkBusy(false);
+      setConfirmBulk(null);
+    }
+  }
+
+  const allSelected = products.length > 0 && selectedIds.size === products.length;
+  const someSelected = selectedIds.size > 0 && !allSelected;
 
   return (
     <div className="flex flex-col gap-6 p-8">
@@ -170,6 +251,64 @@ export default function AdminUrunlerPage() {
         ))}
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-neutral-950 bg-neutral-950 px-4 py-3 text-white">
+          <p className="text-sm font-medium">{selectedIds.size} ürün seçildi</p>
+          <div className="flex items-center gap-2">
+            {confirmBulk ? (
+              <>
+                <span className="text-sm text-neutral-300">
+                  {confirmBulk === "archive"
+                    ? "Seçilenleri arşivlemek istediğinizden emin misiniz?"
+                    : "Seçilenleri kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."}
+                </span>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={confirmBulk === "archive" ? handleBulkArchive : handleBulkDelete}
+                  className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {bulkBusy ? "İşleniyor..." : "Evet, Onayla"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmBulk(null)}
+                  className="rounded-md border border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-400"
+                >
+                  Vazgeç
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setConfirmBulk("archive")}
+                  className="rounded-md border border-neutral-600 px-3 py-1.5 text-xs font-medium text-white transition hover:border-neutral-400"
+                >
+                  Arşivle
+                </button>
+                {tab === "ARCHIVED" && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmBulk("delete")}
+                    className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700"
+                  >
+                    Sil
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="rounded-md border border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-400"
+                >
+                  Seçimi Temizle
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="border border-neutral-200 bg-white">
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -181,6 +320,18 @@ export default function AdminUrunlerPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-100">
+                <th className="w-10 px-5 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someSelected;
+                    }}
+                    onChange={toggleSelectAll}
+                    className="h-4 w-4 accent-neutral-950"
+                    aria-label="Tümünü seç"
+                  />
+                </th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Ürün</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600 hidden md:table-cell">Kategori</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Fiyat</th>
@@ -192,6 +343,15 @@ export default function AdminUrunlerPage() {
             <tbody>
               {products.map((product) => (
                 <tr key={product.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
+                  <td className="px-5 py-3.5">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelected(product.id)}
+                      className="h-4 w-4 accent-neutral-950"
+                      aria-label={`${product.name} seç`}
+                    />
+                  </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       {product.images[0] ? (
@@ -230,47 +390,69 @@ export default function AdminUrunlerPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/admin/urunler/${product.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50 hover:text-neutral-950"
-                      >
-                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                        Düzenle
-                      </Link>
-                      {product.status !== "ARCHIVED" && (
+                    {confirmingId === product.id ? (
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          disabled={archiving === product.id}
-                          onClick={() => handleArchive(product.id, product.name)}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-red-100 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:border-red-200 hover:bg-red-100 disabled:opacity-40"
+                          disabled={busyId === product.id}
+                          onClick={() =>
+                            product.status === "ARCHIVED"
+                              ? handleDelete(product.id, product.name)
+                              : handleArchive(product.id, product.name)
+                          }
+                          className="rounded-md bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
                         >
-                          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
-                          </svg>
-                          Arşivle
+                          {busyId === product.id ? "İşleniyor..." : "Evet, Onayla"}
                         </button>
-                      )}
-                      {product.status === "ARCHIVED" && (
                         <button
                           type="button"
-                          disabled={archiving === product.id}
-                          onClick={() => handleDelete(product.id, product.name)}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-40"
+                          onClick={() => setConfirmingId(null)}
+                          className="rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-400"
+                        >
+                          Vazgeç
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/urunler/${product.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50 hover:text-neutral-950"
                         >
                           <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            <line x1="10" y1="11" x2="10" y2="17" />
-                            <line x1="14" y1="11" x2="14" y2="17" />
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                           </svg>
-                          Sil
-                        </button>
-                      )}
-                    </div>
+                          Düzenle
+                        </Link>
+                        {product.status !== "ARCHIVED" && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingId(product.id)}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-red-100 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:border-red-200 hover:bg-red-100"
+                          >
+                            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
+                            </svg>
+                            Arşivle
+                          </button>
+                        )}
+                        {product.status === "ARCHIVED" && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingId(product.id)}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-red-700"
+                          >
+                            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              <line x1="10" y1="11" x2="10" y2="17" />
+                              <line x1="14" y1="11" x2="14" y2="17" />
+                            </svg>
+                            Sil
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -305,18 +487,25 @@ export default function AdminUrunlerPage() {
         </div>
       )}
 
-      {toast && <AdminToast message="Ürün başarıyla güncellendi" />}
+      {toastMsg && <AdminToast message={toastMsg} type={toastType} />}
     </div>
   );
 }
 
-function AdminToast({ message }: { message: string }) {
+function AdminToast({ message, type = "success" }: { message: string; type?: "success" | "error" }) {
+  const isError = type === "error";
   return (
     <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 shadow-2xl ring-1 ring-white/5">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15">
-        <svg className="h-3.5 w-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isError ? "bg-red-500/15" : "bg-emerald-500/15"}`}>
+        {isError ? (
+          <svg className="h-3.5 w-3.5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ) : (
+          <svg className="h-3.5 w-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
       </div>
       <span className="text-sm font-medium text-white">{message}</span>
     </div>
