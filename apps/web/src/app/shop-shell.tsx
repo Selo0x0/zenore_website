@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { CartLink } from "./cart/cart-link";
 import { FavoritesLink } from "./favoriler/favorites-link";
 import { AuthNav } from "./auth-nav";
@@ -19,8 +20,16 @@ export function ShopShell({ children }: { children: ReactNode }) {
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8 lg:px-10">
             <Link
               href="/"
-              className="text-sm font-semibold uppercase tracking-[0.18em] text-neutral-950"
+              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-950"
             >
+              <Image
+                src="/zenore-mark.png"
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8"
+                priority
+              />
               Zenore
             </Link>
             <div className="flex items-center gap-4">
