@@ -252,6 +252,18 @@ export class AdminService {
     });
   }
 
+  async deleteProduct(id: string) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Ürün bulunamadı.');
+    if (product.status !== 'ARCHIVED') {
+      throw new BadRequestException(
+        'Ürün kalıcı olarak silinmeden önce arşivlenmelidir.',
+      );
+    }
+    await this.prisma.product.delete({ where: { id } });
+    return { success: true };
+  }
+
   // ── Categories ────────────────────────────────────────────────────────────
 
   async getCategories() {

@@ -76,6 +76,11 @@ export class AdminController {
     return this.adminService.archiveProduct(id);
   }
 
+  @Delete('products/:id/permanent')
+  deleteProduct(@Param('id') id: string) {
+    return this.adminService.deleteProduct(id);
+  }
+
   // ── Categories ────────────────────────────────────────────────────────────
 
   @Get('categories')
