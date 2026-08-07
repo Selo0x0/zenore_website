@@ -50,6 +50,9 @@ export default function AdminUrunlerPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("ALL");
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const [archiving, setArchiving] = useState<string | null>(null);
   const [toast, setToast] = useState(false);
 
@@ -63,14 +66,15 @@ export default function AdminUrunlerPage() {
     }
   }, []);
 
-  async function fetchProducts(status: string) {
+  async function fetchProducts(status: string, pageNum: number) {
     if (!user) return;
     setLoading(true);
     try {
       const token = await user.getIdToken();
-      const query = status !== "ALL" ? `?status=${status}` : "";
+      const params = new URLSearchParams({ page: String(pageNum) });
+      if (status !== "ALL") params.set("status", status);
       const res = await apiFetch<{ products: AdminProduct[]; total: number }>(
-        `/admin/products${query}`,
+        `/admin/products?${params.toString()}`,
         token,
       );
       setProducts(res.products);
@@ -85,8 +89,13 @@ export default function AdminUrunlerPage() {
   useEffect(() => {
     // fetchProducts sets loading=true synchronously before its first await
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchProducts(tab);
-  }, [user, tab]);
+    void fetchProducts(tab, page);
+  }, [user, tab, page]);
+
+  function handleTabChange(key: string) {
+    setTab(key);
+    setPage(1);
+  }
 
   async function handleArchive(id: string, name: string) {
     if (!confirm(`"${name}" ürününü arşivlemek istediğinizden emin misiniz?`)) return;
@@ -128,7 +137,7 @@ export default function AdminUrunlerPage() {
           <button
             key={t.key}
             type="button"
-            onClick={() => setTab(t.key)}
+            onClick={() => handleTabChange(t.key)}
             className={`shrink-0 border-b-2 -mb-px px-4 py-2.5 text-sm font-medium transition-colors ${
               tab === t.key
                 ? "border-neutral-950 text-neutral-950"
@@ -232,6 +241,32 @@ export default function AdminUrunlerPage() {
           </table>
         )}
       </div>
+
+      {!loading && products.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-neutral-500">
+            Sayfa {page} / {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Önceki
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Sonraki
+            </button>
+          </div>
+        </div>
+      )}
 
       {toast && <AdminToast message="Ürün başarıyla güncellendi" />}
     </div>
