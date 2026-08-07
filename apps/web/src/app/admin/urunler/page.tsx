@@ -117,6 +117,27 @@ export default function AdminUrunlerPage() {
     }
   }
 
+  async function handleDelete(id: string, name: string) {
+    if (
+      !confirm(
+        `"${name}" ürününü kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`,
+      )
+    )
+      return;
+    if (!user) return;
+    setArchiving(id);
+    try {
+      const token = await user.getIdToken();
+      await apiFetch(`/admin/products/${id}/permanent`, token, { method: "DELETE" });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setTotal((t) => t - 1);
+    } catch {
+      // ignore
+    } finally {
+      setArchiving(null);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 p-8">
       <div className="flex items-center justify-between">
@@ -231,6 +252,22 @@ export default function AdminUrunlerPage() {
                             <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
                           </svg>
                           Arşivle
+                        </button>
+                      )}
+                      {product.status === "ARCHIVED" && (
+                        <button
+                          type="button"
+                          disabled={archiving === product.id}
+                          onClick={() => handleDelete(product.id, product.name)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-40"
+                        >
+                          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                          Sil
                         </button>
                       )}
                     </div>
