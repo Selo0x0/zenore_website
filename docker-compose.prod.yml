@@ -71,6 +71,21 @@ services:
     depends_on:
       - api
 
+  bugsink:
+    image: bugsink/bugsink:2
+    container_name: zenore-bugsink
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      SECRET_KEY: ${BUGSINK_SECRET_KEY}
+      CREATE_SUPERUSER: ${BUGSINK_ADMIN_EMAIL}:${BUGSINK_ADMIN_PASSWORD}
+      PORT: 8000
+      DATABASE_URL: postgresql://bugsinkuser:${BUGSINK_DB_PASSWORD}@postgres:5432/bugsink
+      BEHIND_HTTPS_PROXY: "true"
+      USE_X_FORWARDED_HOST: "true"
+      BASE_URL: ${PUBLIC_SCHEME:-https}://bugs.${DOMAIN:-localhost}
+
   caddy:
     image: caddy:2-alpine
     container_name: zenore-caddy
@@ -80,6 +95,7 @@ services:
       - "443:443"
     environment:
       SITE_ADDRESS: ${PUBLIC_SCHEME:-https}://${DOMAIN:-localhost}
+      BUGSINK_SITE_ADDRESS: ${PUBLIC_SCHEME:-https}://bugs.${DOMAIN:-localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -87,6 +103,7 @@ services:
     depends_on:
       - web
       - api
+      - bugsink
 
 volumes:
   postgres_data:

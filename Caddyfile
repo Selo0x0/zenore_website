@@ -9,3 +9,9 @@ handle_path /api/* {
 handle {
 	reverse_proxy web:3000
 }
+
+{$BUGSINK_SITE_ADDRESS}
+
+encode gzip
+
+reverse_proxy bugsink:8000
