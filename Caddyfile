@@ -1,17 +1,16 @@
-{$SITE_ADDRESS}
+{$SITE_ADDRESS} {
+	encode gzip
 
-encode gzip
+	handle_path /api/* {
+		reverse_proxy api:4000
+	}
 
-handle_path /api/* {
-	reverse_proxy api:4000
+	handle {
+		reverse_proxy web:3000
+	}
 }
 
-handle {
-	reverse_proxy web:3000
+{$BUGSINK_SITE_ADDRESS} {
+	encode gzip
+	reverse_proxy bugsink:8000
 }
-
-{$BUGSINK_SITE_ADDRESS}
-
-encode gzip
-
-reverse_proxy bugsink:8000
