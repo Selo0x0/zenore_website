@@ -18,6 +18,8 @@ export class AppController {
   // TEMPORARY — verifies Bugsink is actually receiving events. Remove after testing.
   @Get('debug-bugsink-test')
   debugBugsinkTest() {
-    throw new Error('Bugsink wiring test — safe to ignore, this was triggered on purpose.');
+    throw new Error(
+      'Bugsink wiring test — safe to ignore, this was triggered on purpose.',
+    );
   }
 }
