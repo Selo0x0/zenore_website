@@ -68,7 +68,7 @@ const PAYMENT_COLORS: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 border border-amber-200",
   PAID: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   FAILED: "bg-red-50 text-red-700 border border-red-200",
-  REFUNDED: "bg-neutral-100 text-neutral-600 border border-neutral-200",
+  REFUNDED: "bg-cream text-brown border border-brown-muted/15",
 };
 
 export default function SiparisDetayPage({ params }: { params: Promise<{ id: string }> }) {
@@ -117,7 +117,7 @@ export default function SiparisDetayPage({ params }: { params: Promise<{ id: str
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown-muted/15 border-t-rust" />
       </div>
     );
   }
@@ -125,11 +125,11 @@ export default function SiparisDetayPage({ params }: { params: Promise<{ id: str
   if (notFound || !order) {
     return (
       <div className="mx-auto max-w-2xl p-8 text-center">
-        <p className="text-sm text-neutral-500">Sipariş bulunamadı.</p>
+        <p className="text-sm text-brown-muted">Sipariş bulunamadı.</p>
         <button
           type="button"
           onClick={() => router.push("/admin/siparisler")}
-          className="mt-4 text-sm font-medium text-neutral-950 underline underline-offset-2"
+          className="mt-4 text-sm font-medium text-ink underline underline-offset-2"
         >
           Siparişlere Dön
         </button>
@@ -138,38 +138,38 @@ export default function SiparisDetayPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-8">
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
       {/* Breadcrumb */}
       <div className="mb-8 flex items-center gap-3">
         <button
           type="button"
           onClick={() => router.push("/admin/siparisler")}
-          className="text-sm text-neutral-500 hover:text-neutral-950"
+          className="text-sm text-brown-muted hover:text-ink"
         >
           ← Siparişler
         </button>
-        <span className="text-neutral-300">/</span>
-        <h1 className="font-mono text-2xl font-semibold tracking-tight text-neutral-800">
+        <span className="text-brown-muted">/</span>
+        <h1 className="font-mono text-2xl font-semibold tracking-tight text-ink">
           {order.orderNumber}
         </h1>
       </div>
 
       {/* Order header */}
-      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-brown-muted/15 bg-cream-soft p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-neutral-950">{order.customerName}</p>
-          <p className="text-sm text-neutral-500">{order.customerEmail}</p>
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="text-sm font-medium text-ink">{order.customerName}</p>
+          <p className="text-sm text-brown-muted">{order.customerEmail}</p>
+          <p className="mt-1 text-xs text-brown-muted">
             {new Date(order.createdAt).toLocaleDateString("tr-TR", {
               day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
             })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${STATUS_COLORS[order.status] ?? "bg-neutral-100 text-neutral-600"}`}>
+          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${STATUS_COLORS[order.status] ?? "bg-cream text-brown"}`}>
             {STATUS_LABELS[order.status] ?? order.status}
           </span>
-          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${PAYMENT_COLORS[order.paymentStatus] ?? "bg-neutral-100 text-neutral-600"}`}>
+          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${PAYMENT_COLORS[order.paymentStatus] ?? "bg-cream text-brown"}`}>
             {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
           </span>
         </div>
@@ -177,60 +177,60 @@ export default function SiparisDetayPage({ params }: { params: Promise<{ id: str
 
       {/* Items + Shipping */}
       <div className="mb-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-xl border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-neutral-500">Ürünler</h2>
-          <div className="flex flex-col divide-y divide-neutral-100">
+        <div className="rounded-xl border border-brown-muted/15 bg-cream-soft p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-brown-muted">Ürünler</h2>
+          <div className="flex flex-col divide-y divide-brown-muted/10">
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div>
-                  <p className="text-sm font-medium text-neutral-950">{item.productName}</p>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-sm font-medium text-ink">{item.productName}</p>
+                  <p className="text-xs text-brown-muted">
                     {item.quantity} adet × {formatPrice(item.unitPriceKurus, order.currency)}
                   </p>
                 </div>
-                <span className="font-semibold text-neutral-950">{formatPrice(item.lineTotalKurus, order.currency)}</span>
+                <span className="font-semibold text-ink">{formatPrice(item.lineTotalKurus, order.currency)}</span>
               </div>
             ))}
           </div>
 
           {/* Price breakdown */}
-          <div className="mt-4 flex flex-col gap-2 border-t border-neutral-100 pt-4 text-sm">
+          <div className="mt-4 flex flex-col gap-2 border-t border-brown-muted/10 pt-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-neutral-500">Ara Toplam</span>
-              <span className="font-medium text-neutral-950">{formatPrice(order.subtotalKurus, order.currency)}</span>
+              <span className="text-brown-muted">Ara Toplam</span>
+              <span className="font-medium text-ink">{formatPrice(order.subtotalKurus, order.currency)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">Kargo</span>
-              <span className="font-medium text-neutral-950">
+              <span className="text-brown-muted">Kargo</span>
+              <span className="font-medium text-ink">
                 {order.shippingKurus > 0 ? formatPrice(order.shippingKurus, order.currency) : "Ücretsiz"}
               </span>
             </div>
             {order.discountKurus > 0 && (
               <div className="flex justify-between">
-                <span className="text-neutral-500">İndirim{order.discountCode ? ` (${order.discountCode})` : ""}</span>
+                <span className="text-brown-muted">İndirim{order.discountCode ? ` (${order.discountCode})` : ""}</span>
                 <span className="font-medium text-emerald-600">-{formatPrice(order.discountKurus, order.currency)}</span>
               </div>
             )}
-            <div className="flex justify-between border-t border-neutral-100 pt-2 text-base font-semibold">
+            <div className="flex justify-between border-t border-brown-muted/10 pt-2 text-base font-semibold">
               <span>Toplam</span>
               <span>{formatPrice(order.totalKurus, order.currency)}</span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-neutral-500">Teslimat Adresi</h2>
-          <p className="text-sm font-medium text-neutral-950">{order.shippingName}</p>
-          <p className="text-sm text-neutral-500">{order.shippingPhone}</p>
-          <p className="mt-2 text-sm leading-6 text-neutral-600">
+        <div className="rounded-xl border border-brown-muted/15 bg-cream-soft p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-brown-muted">Teslimat Adresi</h2>
+          <p className="text-sm font-medium text-ink">{order.shippingName}</p>
+          <p className="text-sm text-brown-muted">{order.shippingPhone}</p>
+          <p className="mt-2 text-sm leading-6 text-brown">
             {order.shippingAddress}, {order.shippingDistrict}, {order.shippingCity}
           </p>
         </div>
       </div>
 
       {/* Status update */}
-      <div className="rounded-xl border border-neutral-200 bg-white p-6">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-neutral-500">Durumu Güncelle</h2>
+      <div className="rounded-xl border border-brown-muted/15 bg-cream-soft p-6">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-brown-muted">Durumu Güncelle</h2>
         <div className="flex flex-wrap gap-2">
           {ALL_STATUSES.map((s) => (
             <button
@@ -240,8 +240,8 @@ export default function SiparisDetayPage({ params }: { params: Promise<{ id: str
               onClick={() => updateStatus(s)}
               className={`px-4 py-2 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
                 order.status === s
-                  ? "bg-neutral-950 text-white"
-                  : "border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-950 hover:text-neutral-950 disabled:opacity-50"
+                  ? "bg-rust text-cream"
+                  : "border border-brown-muted/15 bg-cream-soft text-brown hover:border-rust hover:text-ink disabled:opacity-50"
               }`}
             >
               {STATUS_LABELS[s]}

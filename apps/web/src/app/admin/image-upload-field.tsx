@@ -65,12 +65,12 @@ export function ImageUploadField({ value, onChange, className }: Props) {
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={`relative flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed p-3 transition ${
-          dragOver ? "border-neutral-950 bg-neutral-50" : "border-neutral-200 hover:border-neutral-400"
+          dragOver ? "border-rust bg-cream" : "border-brown-muted/15 hover:border-brown-muted/40"
         }`}
       >
         {uploading ? (
           <div className="flex w-full items-center justify-center py-3">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-brown-muted/15 border-t-rust" />
           </div>
         ) : value ? (
           <>
@@ -81,24 +81,24 @@ export function ImageUploadField({ value, onChange, className }: Props) {
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-neutral-500">{value}</p>
-              <p className="text-xs font-medium text-neutral-950">Değiştirmek için tıklayın veya sürükleyin</p>
+              <p className="truncate text-xs text-brown-muted">{value}</p>
+              <p className="text-xs font-medium text-ink">Değiştirmek için tıklayın veya sürükleyin</p>
             </div>
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onChange(""); }}
-              className="shrink-0 px-2 text-xs font-medium text-neutral-400 hover:text-red-500"
+              className="shrink-0 px-2 text-xs font-medium text-brown-muted hover:text-red-500"
             >
               Kaldır
             </button>
           </>
         ) : (
           <div className="flex w-full flex-col items-center justify-center gap-1.5 py-3 text-center">
-            <svg className="h-5 w-5 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="h-5 w-5 text-brown-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            <p className="text-xs font-medium text-neutral-600">Görsel yüklemek için tıklayın veya sürükleyin</p>
-            <p className="text-[11px] text-neutral-400">PNG, JPG, WEBP · maks. 8MB</p>
+            <p className="text-xs font-medium text-brown">Görsel yüklemek için tıklayın veya sürükleyin</p>
+            <p className="text-[11px] text-brown-muted">PNG, JPG, WEBP · maks. 8MB</p>
           </div>
         )}
       </div>

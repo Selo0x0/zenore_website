@@ -116,13 +116,13 @@ export default function AdminYorumlarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-800">Yorumlar</h1>
-        <p className="mt-1 text-sm text-neutral-500">Ürün değerlendirmelerini onaylayın veya reddedin.</p>
+        <h1 className="font-serif text-2xl tracking-tight text-ink">Yorumlar</h1>
+        <p className="mt-1 text-sm text-brown-muted">Ürün değerlendirmelerini onaylayın veya reddedin.</p>
       </div>
 
-      <div className="flex gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         {tabs.map((t) => (
           <button
             key={t.value}
@@ -130,8 +130,8 @@ export default function AdminYorumlarPage() {
             onClick={() => setTab(t.value)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
               tab === t.value
-                ? "bg-neutral-950 text-white"
-                : "border border-neutral-200 text-neutral-600 hover:border-neutral-400"
+                ? "bg-rust text-cream"
+                : "border border-brown-muted/15 text-brown hover:border-brown-muted/40"
             }`}
           >
             {t.label}
@@ -139,15 +139,15 @@ export default function AdminYorumlarPage() {
         ))}
       </div>
 
-      <div className="border border-neutral-200 bg-white">
+      <div className="border border-brown-muted/15 bg-cream-soft">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="h-7 w-7 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+            <div className="h-7 w-7 animate-spin rounded-full border-2 border-brown-muted/15 border-t-rust" />
           </div>
         ) : reviews.length === 0 ? (
-          <p className="py-20 text-center text-sm text-neutral-400">Bu filtrede yorum yok.</p>
+          <p className="py-20 text-center text-sm text-brown-muted">Bu filtrede yorum yok.</p>
         ) : (
-          <div className="flex flex-col divide-y divide-neutral-100">
+          <div className="flex flex-col divide-y divide-brown-muted/10">
             {reviews.map((review) => {
               const badge = statusBadge(review.status);
               return (
@@ -164,17 +164,17 @@ export default function AdminYorumlarPage() {
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-brown-muted">
                       {new Date(review.createdAt).toLocaleDateString("tr-TR")}
                     </span>
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">
+                    <p className="text-sm font-medium text-brown-muted">
                       {review.product.name} · {review.customer.displayName ?? review.customer.email}
                     </p>
-                    {review.title && <p className="mt-1 font-semibold text-neutral-900">{review.title}</p>}
-                    <p className="mt-1 text-sm leading-6 text-neutral-600">{review.body}</p>
+                    {review.title && <p className="mt-1 font-semibold text-ink">{review.title}</p>}
+                    <p className="mt-1 text-sm leading-6 text-brown">{review.body}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -204,14 +204,14 @@ export default function AdminYorumlarPage() {
                           type="button"
                           disabled={busyId === review.id}
                           onClick={() => handleDelete(review.id)}
-                          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-cream hover:bg-red-700 disabled:opacity-50"
                         >
                           Sil
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(null)}
-                          className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:border-neutral-400"
+                          className="rounded-md border border-brown-muted/15 px-3 py-1.5 text-xs font-medium text-brown hover:border-brown-muted/40"
                         >
                           Vazgeç
                         </button>
@@ -220,7 +220,7 @@ export default function AdminYorumlarPage() {
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(review.id)}
-                        className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                        className="rounded-md border border-brown-muted/15 px-3 py-1.5 text-xs font-medium text-brown-muted transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
                       >
                         Sil
                       </button>
@@ -234,8 +234,8 @@ export default function AdminYorumlarPage() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 shadow-2xl ring-1 ring-white/5">
-          <span className="text-sm font-medium text-white">{toast}</span>
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl border border-brown/40 bg-ink px-4 py-3 shadow-2xl ring-1 ring-cream/10">
+          <span className="text-sm font-medium text-cream">{toast}</span>
         </div>
       )}
     </div>
