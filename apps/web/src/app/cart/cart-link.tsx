@@ -9,7 +9,7 @@ export function CartLink() {
   return (
     <Link
       href="/cart"
-      className="relative flex h-9 w-9 items-center justify-center text-neutral-950 transition hover:text-neutral-600"
+      className="relative flex h-9 w-9 items-center justify-center text-ink transition hover:text-rust-dark"
       aria-label={`Sepet${totalQuantity > 0 ? ` (${totalQuantity} ürün)` : ""}`}
     >
       <svg
@@ -27,7 +27,7 @@ export function CartLink() {
       </svg>
 
       {totalQuantity > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-neutral-950 text-[10px] font-semibold text-white">
+        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-cream">
           {totalQuantity > 9 ? "9+" : totalQuantity}
         </span>
       )}

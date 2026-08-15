@@ -33,7 +33,7 @@ export function AddToCartButton({ item, disabled }: AddToCartButtonProps) {
       type="button"
       disabled={disabled || loading}
       onClick={handleClick}
-      className="h-12 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
+      className="h-12 bg-rust px-6 text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:bg-brown-muted/40"
     >
       {added ? "Sepete Eklendi" : "Sepete Ekle"}
     </button>

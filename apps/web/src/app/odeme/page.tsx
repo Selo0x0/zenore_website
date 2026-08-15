@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -11,6 +11,7 @@ import { formatPrice } from "@/app/products/product-data";
 import { PROVINCES } from "@/lib/turkey-locations";
 import { isValidPhone, sanitizePhoneInput } from "@/lib/phone";
 import { Toast } from "@/app/toast";
+import { LocationSelect } from "@/app/location-select";
 
 function toTurkishError(msg: string): string {
   const m = msg.toLowerCase();
@@ -57,6 +58,7 @@ export default function OdemePage() {
   const [discountInput, setDiscountInput] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
   const [discountLoading, setDiscountLoading] = useState(false);
+  const orderPlacedRef = useRef(false);
   const [discountError, setDiscountError] = useState<string | null>(null);
 
   const totalKurus = subtotalKurus - (appliedDiscount?.discountKurus ?? 0);
@@ -103,7 +105,7 @@ export default function OdemePage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (!authLoading && !items.length) {
+    if (!authLoading && !items.length && !orderPlacedRef.current) {
       router.push("/cart");
     }
   }, [items, authLoading, router]);
@@ -181,6 +183,7 @@ export default function OdemePage() {
           ...(appliedDiscount && { discountCode: appliedDiscount.code }),
         }),
       });
+      orderPlacedRef.current = true;
       clearCart();
       router.push(`/siparis/${order.orderNumber}`);
     } catch (err) {
@@ -192,9 +195,9 @@ export default function OdemePage() {
 
   if (authLoading || selectedId === null) {
     return (
-      <main className="min-h-screen bg-neutral-50">
+      <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown-muted/20 border-t-rust" />
         </div>
       </main>
     );
@@ -203,20 +206,20 @@ export default function OdemePage() {
   return (
     <>
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
-      <main className="min-h-screen bg-neutral-50 text-neutral-950">
+      <main className="min-h-screen bg-cream text-ink">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
-        <div className="mb-8 border-b border-neutral-200 pb-6">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-neutral-400">
+        <div className="mb-8 border-b border-brown-muted/15 pb-6">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-brown-muted">
             Zenore
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Ödeme</h1>
+          <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">Ödeme</h1>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
             {/* Address section */}
             <div className="flex flex-col gap-6">
-              <h2 className="text-lg font-semibold">Teslimat Adresi</h2>
+              <h2 className="font-serif text-lg text-ink">Teslimat Adresi</h2>
 
               {addresses.length > 0 && (
                 <div className="flex flex-col gap-3">
@@ -225,8 +228,8 @@ export default function OdemePage() {
                       key={addr.id}
                       className={`flex cursor-pointer items-start gap-4 border p-4 transition ${
                         selectedId === addr.id
-                          ? "border-neutral-950 bg-white"
-                          : "border-neutral-200 bg-white hover:border-neutral-400"
+                          ? "border-rust-dark bg-cream-soft"
+                          : "border-brown-muted/15 bg-cream-soft hover:border-brown-muted/40"
                       }`}
                     >
                       <input
@@ -235,24 +238,24 @@ export default function OdemePage() {
                         value={addr.id}
                         checked={selectedId === addr.id}
                         onChange={() => setSelectedId(addr.id)}
-                        className="mt-0.5 accent-neutral-950"
+                        className="mt-0.5 accent-rust"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium">{addr.fullName}</p>
+                          <p className="font-medium text-ink">{addr.fullName}</p>
                           {addr.label && (
-                            <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-500">
+                            <span className="rounded bg-cream px-2 py-0.5 text-xs font-medium text-brown-muted">
                               {addr.label}
                             </span>
                           )}
                           {addr.isDefault && (
-                            <span className="rounded bg-neutral-950 px-2 py-0.5 text-xs font-medium text-white">
+                            <span className="rounded bg-rust px-2 py-0.5 text-xs font-medium text-cream">
                               Varsayılan
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-sm text-neutral-500">{addr.phone}</p>
-                        <p className="mt-1 text-sm text-neutral-600">
+                        <p className="mt-1 text-sm text-brown-muted">{addr.phone}</p>
+                        <p className="mt-1 text-sm text-brown">
                           {addr.address}, {addr.district}, {addr.city}
                         </p>
                         {!isValidPhone(addr.phone) && (
@@ -271,8 +274,8 @@ export default function OdemePage() {
                   <label
                     className={`flex cursor-pointer items-center gap-4 border p-4 transition ${
                       selectedId === "new"
-                        ? "border-neutral-950 bg-white"
-                        : "border-neutral-200 bg-white hover:border-neutral-400"
+                        ? "border-rust-dark bg-cream-soft"
+                        : "border-brown-muted/15 bg-cream-soft hover:border-brown-muted/40"
                     }`}
                   >
                     <input
@@ -281,23 +284,23 @@ export default function OdemePage() {
                       value="new"
                       checked={selectedId === "new"}
                       onChange={() => setSelectedId("new")}
-                      className="accent-neutral-950"
+                      className="accent-rust"
                     />
-                    <span className="text-sm font-medium">Farklı adres kullan</span>
+                    <span className="text-sm font-medium text-ink">Farklı adres kullan</span>
                   </label>
                 </div>
               )}
 
               {(selectedId === "new" || addresses.length === 0) && (
-                <div className="flex flex-col gap-4 border border-neutral-200 bg-white p-6">
+                <div className="flex flex-col gap-4 border border-brown-muted/15 bg-cream-soft p-6">
                   {addresses.length === 0 && (
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-sm text-brown-muted">
                       Kayıtlı adresiniz yok. Teslimat adresinizi girin.
                     </p>
                   )}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         Ad Soyad <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -306,11 +309,11 @@ export default function OdemePage() {
                         value={newForm.fullName}
                         onChange={(e) => setNewForm((p) => ({ ...p, fullName: e.target.value }))}
                         placeholder="Ad Soyad"
-                        className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                        className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         Telefon <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -319,49 +322,35 @@ export default function OdemePage() {
                         value={newForm.phone}
                         onChange={(e) => setNewForm((p) => ({ ...p, phone: sanitizePhoneInput(e.target.value) }))}
                         placeholder="0555 000 00 00"
-                        className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                        className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         İl <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        required={selectedId === "new"}
+                      <LocationSelect
                         value={newForm.city}
-                        onChange={(e) =>
-                          setNewForm((p) => ({ ...p, city: e.target.value, district: "" }))
-                        }
-                        className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
-                      >
-                        <option value="">İl Seçiniz</option>
-                        {PROVINCES.map((p) => (
-                          <option key={p.name} value={p.name}>{p.name}</option>
-                        ))}
-                      </select>
+                        onChange={(city) => setNewForm((p) => ({ ...p, city, district: "" }))}
+                        options={PROVINCES.map((p) => p.name)}
+                        placeholder="İl Seçiniz"
+                      />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         İlçe <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        required={selectedId === "new"}
+                      <LocationSelect
                         value={newForm.district}
+                        onChange={(district) => setNewForm((p) => ({ ...p, district }))}
+                        options={PROVINCES.find((p) => p.name === newForm.city)?.districts ?? []}
+                        placeholder="İlçe Seçiniz"
                         disabled={!newForm.city}
-                        onChange={(e) =>
-                          setNewForm((p) => ({ ...p, district: e.target.value }))
-                        }
-                        className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <option value="">İlçe Seçiniz</option>
-                        {(PROVINCES.find((p) => p.name === newForm.city)?.districts ?? []).map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
+                      />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-neutral-700">
+                    <label className="text-sm font-medium text-brown">
                       Açık Adres <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -370,7 +359,7 @@ export default function OdemePage() {
                       value={newForm.address}
                       onChange={(e) => setNewForm((p) => ({ ...p, address: e.target.value }))}
                       placeholder="Mahalle, sokak, bina no, daire..."
-                      className="resize-none border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                      className="resize-none border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                     />
                     {newForm.address.length > 0 && newForm.address.length < 10 && (
                       <p className="text-xs text-amber-600">En az 10 karakter giriniz ({newForm.address.length}/10)</p>
@@ -381,20 +370,20 @@ export default function OdemePage() {
             </div>
 
             {/* Order summary */}
-            <aside className="flex h-fit flex-col gap-4 border border-neutral-200 bg-white p-6">
-              <h2 className="text-lg font-semibold">Sipariş Özeti</h2>
+            <aside className="flex h-fit flex-col gap-4 border border-brown-muted/15 bg-cream-soft p-6">
+              <h2 className="font-serif text-lg text-ink">Sipariş Özeti</h2>
 
-              <div className="flex flex-col gap-3 border-b border-neutral-100 pb-4">
+              <div className="flex flex-col gap-3 border-b border-brown-muted/15 pb-4">
                 {items.map((item) => (
                   <div key={item.productId} className="flex items-center gap-3">
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-neutral-100 bg-stone-100">
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-brown-muted/15 bg-cream">
                       <ProductImage src={item.imageUrl} alt={item.imageAlt} />
                     </div>
                     <div className="flex-1 text-sm">
-                      <p className="font-medium leading-5">{item.name}</p>
-                      <p className="text-neutral-400">× {item.quantity}</p>
+                      <p className="font-medium leading-5 text-ink">{item.name}</p>
+                      <p className="text-brown-muted">× {item.quantity}</p>
                     </div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-sm font-semibold text-ink">
                       {formatPrice(item.priceKurus * item.quantity, item.currency)}
                     </p>
                   </div>
@@ -402,7 +391,7 @@ export default function OdemePage() {
               </div>
 
               {/* Discount code */}
-              <div className="border-b border-neutral-100 pb-4">
+              <div className="border-b border-brown-muted/15 pb-4">
                 {appliedDiscount ? (
                   <div className="flex items-center justify-between gap-3 bg-emerald-50 px-3 py-2.5">
                     <div className="flex items-center gap-2 text-sm">
@@ -431,13 +420,13 @@ export default function OdemePage() {
                           setDiscountError(null);
                         }}
                         placeholder="İndirim kodu"
-                        className="flex-1 border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm uppercase outline-none transition focus:border-neutral-950 focus:bg-white"
+                        className="flex-1 border border-brown-muted/20 bg-cream px-3 py-2 text-sm uppercase text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                       />
                       <button
                         type="button"
                         onClick={applyDiscount}
                         disabled={discountLoading || !discountInput.trim()}
-                        className="shrink-0 border border-neutral-950 px-4 py-2 text-xs font-medium text-neutral-950 transition hover:bg-neutral-950 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        className="shrink-0 border border-rust-dark px-4 py-2 text-xs font-medium text-rust-dark transition hover:bg-rust-dark hover:text-cream disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         {discountLoading ? "..." : "Uygula"}
                       </button>
@@ -449,24 +438,24 @@ export default function OdemePage() {
 
               <div className="flex flex-col gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Ara Toplam</span>
-                  <span className="font-medium">{formatPrice(subtotalKurus, currency)}</span>
+                  <span className="text-brown-muted">Ara Toplam</span>
+                  <span className="font-medium text-ink">{formatPrice(subtotalKurus, currency)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Kargo</span>
+                  <span className="text-brown-muted">Kargo</span>
                   <span className="font-medium text-green-600">Ücretsiz</span>
                 </div>
                 {appliedDiscount && (
                   <div className="flex justify-between">
-                    <span className="text-neutral-500">İndirim ({appliedDiscount.code})</span>
+                    <span className="text-brown-muted">İndirim ({appliedDiscount.code})</span>
                     <span className="font-medium text-emerald-600">-{formatPrice(appliedDiscount.discountKurus, currency)}</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-between border-t border-neutral-200 pt-4">
-                <span className="font-semibold">Toplam</span>
-                <span className="text-lg font-semibold">
+              <div className="flex justify-between border-t border-brown-muted/15 pt-4">
+                <span className="font-semibold text-ink">Toplam</span>
+                <span className="text-lg font-semibold text-ink">
                   {formatPrice(totalKurus, currency)}
                 </span>
               </div>
@@ -474,12 +463,12 @@ export default function OdemePage() {
               <button
                 type="submit"
                 disabled={placing || selectedAddressInvalid}
-                className="flex h-12 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-12 items-center justify-center bg-rust text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {placing ? "İşleniyor..." : "Siparişi Onayla"}
               </button>
 
-              <p className="text-center text-xs text-neutral-400">
+              <p className="text-center text-xs text-brown-muted">
                 Siparişi onaylayarak{" "}
                 <span className="underline">kullanım koşullarını</span> kabul etmiş
                 olursunuz.
