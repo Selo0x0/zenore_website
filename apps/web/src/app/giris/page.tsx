@@ -40,6 +40,7 @@ function GirisForm() {
       });
 
       router.push(redirect);
+      window.scrollTo(0, 0);
     } catch {
       setError("E-posta veya şifre hatalı. Lütfen tekrar deneyin.");
     } finally {
@@ -48,20 +49,20 @@ function GirisForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 px-5">
+    <main className="flex min-h-screen items-center justify-center bg-cream px-5">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">
+          <h1 className="font-serif text-2xl tracking-tight text-ink">
             Giriş Yap
           </h1>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-brown-muted">
             Hesabına giriş yap ve alışverişe devam et.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+            <label htmlFor="email" className="text-sm font-medium text-brown">
               E-posta
             </label>
             <input
@@ -71,12 +72,12 @@ function GirisForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+              className="h-11 border border-brown-muted/30 bg-cream-soft px-3 text-sm text-ink outline-none focus:border-rust"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+            <label htmlFor="password" className="text-sm font-medium text-brown">
               Şifre
             </label>
             <input
@@ -86,7 +87,7 @@ function GirisForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11 border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+              className="h-11 border border-brown-muted/30 bg-cream-soft px-3 text-sm text-ink outline-none focus:border-rust"
             />
           </div>
 
@@ -97,17 +98,17 @@ function GirisForm() {
           <button
             type="submit"
             disabled={loading}
-            className="h-11 bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
+            className="h-11 bg-rust text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:bg-brown-muted/40"
           >
             {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-neutral-500">
+        <p className="mt-6 text-center text-sm text-brown-muted">
           Hesabın yok mu?{" "}
           <Link
             href={`/kayit${redirect !== "/" ? `?redirect=${encodeURIComponent(redirect)}` : ""}`}
-            className="font-medium text-neutral-950 underline underline-offset-2"
+            className="font-medium text-rust-dark underline underline-offset-2"
           >
             Kayıt ol
           </Link>

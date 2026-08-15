@@ -68,7 +68,7 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="text-xs font-medium uppercase tracking-[0.1em] text-neutral-500">
+          <label htmlFor="name" className="text-xs font-medium uppercase tracking-[0.1em] text-brown-muted">
             Ad Soyad <span className="text-red-500">*</span>
           </label>
           <input
@@ -78,12 +78,12 @@ export function ContactForm() {
             required
             value={form.name}
             onChange={handleChange}
-            className="border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-950 placeholder:text-neutral-300"
+            className="border border-brown-muted/20 bg-cream-soft px-4 py-3 text-sm text-ink outline-none transition focus:border-rust placeholder:text-brown-muted/50"
             placeholder="Adınız ve soyadınız"
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-xs font-medium uppercase tracking-[0.1em] text-neutral-500">
+          <label htmlFor="email" className="text-xs font-medium uppercase tracking-[0.1em] text-brown-muted">
             E-posta <span className="text-red-500">*</span>
           </label>
           <input
@@ -93,14 +93,14 @@ export function ContactForm() {
             required
             value={form.email}
             onChange={handleChange}
-            className="border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-950 placeholder:text-neutral-300"
+            className="border border-brown-muted/20 bg-cream-soft px-4 py-3 text-sm text-ink outline-none transition focus:border-rust placeholder:text-brown-muted/50"
             placeholder="ornek@email.com"
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="subject" className="text-xs font-medium uppercase tracking-[0.1em] text-neutral-500">
+        <label htmlFor="subject" className="text-xs font-medium uppercase tracking-[0.1em] text-brown-muted">
           Konu
         </label>
         <input
@@ -109,13 +109,13 @@ export function ContactForm() {
           type="text"
           value={form.subject}
           onChange={handleChange}
-          className="border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-950 placeholder:text-neutral-300"
+          className="border border-brown-muted/20 bg-cream-soft px-4 py-3 text-sm text-ink outline-none transition focus:border-rust placeholder:text-brown-muted/50"
           placeholder="Mesajınızın konusu"
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="message" className="text-xs font-medium uppercase tracking-[0.1em] text-neutral-500">
+        <label htmlFor="message" className="text-xs font-medium uppercase tracking-[0.1em] text-brown-muted">
           Mesaj <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -125,7 +125,7 @@ export function ContactForm() {
           rows={6}
           value={form.message}
           onChange={handleChange}
-          className="resize-none border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-950 placeholder:text-neutral-300"
+          className="resize-none border border-brown-muted/20 bg-cream-soft px-4 py-3 text-sm text-ink outline-none transition focus:border-rust placeholder:text-brown-muted/50"
           placeholder="Mesajınızı buraya yazın..."
         />
       </div>
@@ -139,7 +139,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="self-start bg-neutral-950 px-8 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
+        className="self-start bg-rust px-8 py-3 text-sm font-medium text-cream transition hover:bg-rust-dark disabled:opacity-50"
       >
         {status === "sending" ? "Gönderiliyor..." : "Gönder"}
       </button>

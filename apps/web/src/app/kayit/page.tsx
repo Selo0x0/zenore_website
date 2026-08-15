@@ -56,6 +56,7 @@ function KayitForm() {
       }
 
       router.push(redirect);
+      window.scrollTo(0, 0);
     } catch (err: unknown) {
       if (
         err &&
@@ -80,20 +81,20 @@ function KayitForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 px-5">
+    <main className="flex min-h-screen items-center justify-center bg-cream px-5">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">
+          <h1 className="font-serif text-2xl tracking-tight text-ink">
             Hesap Oluştur
           </h1>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-brown-muted">
             Zenore&apos;a üye ol ve alışverişe başla.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="displayName" className="text-sm font-medium text-neutral-700">
+            <label htmlFor="displayName" className="text-sm font-medium text-brown">
               Ad Soyad
             </label>
             <input
@@ -103,12 +104,12 @@ function KayitForm() {
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="h-11 border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+              className="h-11 border border-brown-muted/30 bg-cream-soft px-3 text-sm text-ink outline-none focus:border-rust"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+            <label htmlFor="email" className="text-sm font-medium text-brown">
               E-posta
             </label>
             <input
@@ -118,12 +119,12 @@ function KayitForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+              className="h-11 border border-brown-muted/30 bg-cream-soft px-3 text-sm text-ink outline-none focus:border-rust"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+            <label htmlFor="password" className="text-sm font-medium text-brown">
               Şifre
             </label>
             <input
@@ -134,9 +135,9 @@ function KayitForm() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11 border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+              className="h-11 border border-brown-muted/30 bg-cream-soft px-3 text-sm text-ink outline-none focus:border-rust"
             />
-            <p className="text-xs text-neutral-400">En az 6 karakter</p>
+            <p className="text-xs text-brown-muted">En az 6 karakter</p>
           </div>
 
           {error ? (
@@ -146,17 +147,17 @@ function KayitForm() {
           <button
             type="submit"
             disabled={loading}
-            className="h-11 bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
+            className="h-11 bg-rust text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:bg-brown-muted/40"
           >
             {loading ? "Hesap oluşturuluyor..." : "Kayıt Ol"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-neutral-500">
+        <p className="mt-6 text-center text-sm text-brown-muted">
           Zaten hesabın var mı?{" "}
           <Link
             href={`/giris${redirect !== "/" ? `?redirect=${encodeURIComponent(redirect)}` : ""}`}
-            className="font-medium text-neutral-950 underline underline-offset-2"
+            className="font-medium text-rust-dark underline underline-offset-2"
           >
             Giriş yap
           </Link>
