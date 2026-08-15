@@ -36,6 +36,13 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+# Docker auto-sets HOSTNAME to the container ID, which Next's standalone
+# server then resolves via DNS and binds to specifically — not to loopback.
+# That leaves nothing listening on localhost/127.0.0.1 *inside* the
+# container (only reachable from the host via Docker's port-mapping NAT),
+# which breaks the healthcheck and anything else calling itself over
+# localhost. Force the true wildcard bind instead.
+ENV HOSTNAME=0.0.0.0
 COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build /app/apps/web/public ./apps/web/public
