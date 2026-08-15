@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { CartLink } from "./cart/cart-link";
-import { FavoritesLink } from "./favoriler/favorites-link";
+import { HeaderSearch } from "./header-search";
 import { AuthNav } from "./auth-nav";
 import { MainNav } from "./nav";
 import type { ReactNode } from "react";
@@ -16,11 +16,11 @@ export function ShopShell({ children }: { children: ReactNode }) {
   return (
     <>
       {!isAdmin && (
-        <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
-          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8 lg:px-10">
+        <header className="sticky top-0 z-50 border-b border-brown-muted/15 bg-cream">
+          <div className="relative mx-auto flex h-20 w-full max-w-6xl items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
             <Link
               href="/"
-              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-950"
+              className="flex shrink-0 items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-ink"
             >
               <Image
                 src="/zenore-mark.png"
@@ -32,13 +32,15 @@ export function ShopShell({ children }: { children: ReactNode }) {
               />
               Zenore
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-1 items-center justify-between">
+              <MainNav />
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <HeaderSearch />
               <AuthNav />
-              <FavoritesLink />
               <CartLink />
             </div>
           </div>
-          <MainNav />
         </header>
       )}
       {children}

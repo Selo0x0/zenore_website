@@ -29,9 +29,13 @@ export function AuthNav() {
     return (
       <Link
         href="/giris"
-        className="text-sm font-medium text-neutral-500 transition hover:text-neutral-950"
+        aria-label="Giriş Yap"
+        className="flex h-9 w-9 items-center justify-center text-ink transition hover:text-rust-dark"
       >
-        Giriş Yap
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21a8 8 0 0 0-16 0" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
       </Link>
     );
   }
@@ -44,14 +48,14 @@ export function AuthNav() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 transition hover:text-neutral-950"
+        className="flex items-center gap-1.5 text-sm font-medium text-brown transition hover:text-ink"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rust text-xs font-semibold text-cream">
           {firstName[0]?.toUpperCase()}
         </span>
         <span className="hidden sm:block">{firstName}</span>
         <svg
-          className={`h-3 w-3 text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-3 w-3 text-brown-muted transition-transform ${open ? "rotate-180" : ""}`}
           viewBox="0 0 12 12"
           fill="none"
           stroke="currentColor"
@@ -62,15 +66,15 @@ export function AuthNav() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-48 border border-neutral-200 bg-white py-1 shadow-lg">
-          <div className="border-b border-neutral-100 px-4 py-2">
-            <p className="truncate text-xs text-neutral-400">{user.email}</p>
+        <div className="absolute right-0 top-full z-50 mt-2 w-48 border border-brown-muted/15 bg-cream-soft py-1 shadow-lg">
+          <div className="border-b border-brown-muted/15 px-4 py-2">
+            <p className="truncate text-xs text-brown-muted">{user.email}</p>
           </div>
           {isAdmin && (
             <Link
               href="/admin"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 border-b border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-50"
+              className="flex items-center gap-2 border-b border-brown-muted/15 px-4 py-2 text-sm font-medium text-ink hover:bg-cream"
             >
               <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
@@ -82,7 +86,7 @@ export function AuthNav() {
           <Link
             href="/hesabim"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
+            className="block px-4 py-2 text-sm text-brown hover:bg-cream hover:text-ink"
           >
             Hesabım
           </Link>
@@ -94,7 +98,7 @@ export function AuthNav() {
               await signOut();
               router.push("/");
             }}
-            className="block w-full px-4 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
+            className="block w-full px-4 py-2 text-left text-sm text-brown hover:bg-cream hover:text-ink"
           >
             Çıkış Yap
           </button>

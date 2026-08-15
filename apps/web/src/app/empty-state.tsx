@@ -14,17 +14,17 @@ type Props = {
 export function EmptyState({ icon, title, description, actionLabel, actionHref, onAction, className }: Props) {
   return (
     <div
-      className={`flex min-h-72 flex-col items-center justify-center gap-5 border border-dashed border-neutral-300 bg-white p-8 text-center ${className ?? ""}`}
+      className={`flex min-h-72 flex-col items-center justify-center gap-5 border border-dashed border-brown-muted/30 bg-cream-soft p-8 text-center ${className ?? ""}`}
     >
-      <div className="h-12 w-12 text-neutral-300">{icon}</div>
+      <div className="h-12 w-12 text-brown-muted/50">{icon}</div>
       <div>
-        <p className="font-semibold text-neutral-700">{title}</p>
-        {description && <p className="mt-1 text-sm text-neutral-400">{description}</p>}
+        <p className="font-semibold text-ink">{title}</p>
+        {description && <p className="mt-1 text-sm text-brown-muted">{description}</p>}
       </div>
       {actionLabel && actionHref && (
         <Link
           href={actionHref}
-          className="bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+          className="bg-rust px-7 py-3 text-sm font-medium text-cream transition hover:bg-rust-dark"
         >
           {actionLabel}
         </Link>
@@ -33,7 +33,7 @@ export function EmptyState({ icon, title, description, actionLabel, actionHref, 
         <button
           type="button"
           onClick={onAction}
-          className="text-xs text-neutral-400 underline underline-offset-2 hover:text-neutral-950"
+          className="text-xs text-brown-muted underline underline-offset-2 hover:text-ink"
         >
           {actionLabel}
         </button>
