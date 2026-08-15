@@ -8,7 +8,7 @@ export function BackButton({ label }: { label: string }) {
     <button
       type="button"
       onClick={() => router.back()}
-      className="text-sm font-medium text-neutral-400 transition hover:text-neutral-950"
+      className="text-sm font-medium text-brown-muted transition hover:text-ink"
     >
       ← {label}
     </button>

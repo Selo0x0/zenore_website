@@ -63,16 +63,16 @@ function ReviewForm({
 
   if (submitted) {
     return (
-      <p className="border border-dashed border-neutral-300 bg-white p-5 text-sm text-neutral-600">
+      <p className="border border-dashed border-brown-muted/30 bg-cream-soft p-5 text-sm text-brown">
         Yorumunuz alındı, onaylandıktan sonra bu sayfada görünecektir.
       </p>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 border border-neutral-200 bg-white p-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 border border-brown-muted/15 bg-cream-soft p-5">
       <div>
-        <p className="mb-2 text-sm font-medium text-neutral-700">Puanınız</p>
+        <p className="mb-2 text-sm font-medium text-brown">Puanınız</p>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
@@ -96,7 +96,7 @@ function ReviewForm({
         </div>
       </div>
       <div>
-        <label htmlFor="review-title" className="mb-1 block text-sm font-medium text-neutral-700">
+        <label htmlFor="review-title" className="mb-1 block text-sm font-medium text-brown">
           Başlık (opsiyonel)
         </label>
         <input
@@ -104,11 +104,11 @@ function ReviewForm({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-950 focus:outline-none"
+          className="w-full border border-brown-muted/30 bg-cream px-3 py-2 text-sm text-ink focus:border-rust focus:outline-none"
         />
       </div>
       <div>
-        <label htmlFor="review-body" className="mb-1 block text-sm font-medium text-neutral-700">
+        <label htmlFor="review-body" className="mb-1 block text-sm font-medium text-brown">
           Yorumunuz
         </label>
         <textarea
@@ -118,14 +118,14 @@ function ReviewForm({
           rows={4}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          className="w-full border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-950 focus:outline-none"
+          className="w-full border border-brown-muted/30 bg-cream px-3 py-2 text-sm text-ink focus:border-rust focus:outline-none"
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
         disabled={submitting}
-        className="self-start bg-neutral-950 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
+        className="self-start bg-rust px-6 py-2.5 text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:bg-brown-muted/40"
       >
         {submitting ? "Gönderiliyor..." : "Yorumu Gönder"}
       </button>
@@ -159,27 +159,27 @@ export function ProductReviews({
   }
 
   return (
-    <section className="border-t border-neutral-200 bg-neutral-50">
+    <section className="border-t border-brown-muted/15 bg-cream">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-12 sm:px-8 lg:px-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Değerlendirmeler</h2>
+            <h2 className="font-serif text-2xl tracking-tight text-ink">Değerlendirmeler</h2>
             {count > 0 ? (
               <div className="mt-2 flex items-center gap-3">
                 <Stars value={average} size="h-5 w-5" />
-                <span className="text-sm text-neutral-600">
+                <span className="text-sm text-brown">
                   {average.toFixed(1)} · {count} değerlendirme
                 </span>
               </div>
             ) : (
-              <p className="mt-2 text-sm text-neutral-500">Henüz değerlendirme yok.</p>
+              <p className="mt-2 text-sm text-brown-muted">Henüz değerlendirme yok.</p>
             )}
           </div>
           {!showForm && !formDone && !loading && (
             <button
               type="button"
               onClick={handleWriteReview}
-              className="self-start border border-neutral-950 px-6 py-2.5 text-sm font-medium text-neutral-950 transition hover:bg-neutral-950 hover:text-white"
+              className="self-start border border-rust-dark px-6 py-2.5 text-sm font-medium text-rust-dark transition hover:bg-rust-dark hover:text-cream"
             >
               Yorum Yaz
             </button>
@@ -193,7 +193,7 @@ export function ProductReviews({
         {initialReviews.length > 0 && (
           <div className="flex flex-col gap-5">
             {initialReviews.map((review) => (
-              <article key={review.id} className="border border-neutral-200 bg-white p-5">
+              <article key={review.id} className="border border-brown-muted/15 bg-cream-soft p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Stars value={review.rating} />
@@ -203,15 +203,15 @@ export function ProductReviews({
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-xs text-brown-muted">
                     {new Date(review.createdAt).toLocaleDateString("tr-TR")}
                   </span>
                 </div>
                 {review.title && (
-                  <p className="mt-3 font-semibold text-neutral-900">{review.title}</p>
+                  <p className="mt-3 font-semibold text-ink">{review.title}</p>
                 )}
-                <p className="mt-1 text-sm leading-6 text-neutral-600">{review.body}</p>
-                <p className="mt-3 text-xs font-medium text-neutral-400">
+                <p className="mt-1 text-sm leading-6 text-brown">{review.body}</p>
+                <p className="mt-3 text-xs font-medium text-brown-muted">
                   {review.customer.displayName ?? "Zenore Müşterisi"}
                 </p>
               </article>
