@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ProductCard } from "./product-card";
 import { EmptyState, emptyStateIcons } from "./empty-state";
 import { type Category, type Product } from "./products/product-data";
@@ -11,8 +12,16 @@ type Props = {
 };
 
 export function ProductGrid({ products, categories }: Props) {
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get("search") ?? "";
   const [activeCategory, setActiveCategory] = useState("all");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(urlSearch);
+  const [syncedUrlSearch, setSyncedUrlSearch] = useState(urlSearch);
+
+  if (urlSearch !== syncedUrlSearch) {
+    setSyncedUrlSearch(urlSearch);
+    setSearch(urlSearch);
+  }
 
   const categorySlugMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -39,89 +48,89 @@ export function ProductGrid({ products, categories }: Props) {
     )
   );
 
+  const pillsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = pillsScrollRef.current;
+    if (!el) return;
+
+    function updateScrollState() {
+      if (!el) return;
+      setCanScrollRight(el.scrollWidth - el.clientWidth - el.scrollLeft > 4);
+    }
+
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState);
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [visibleCategories.length]);
+
   return (
-    <section id="koleksiyon" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-12 sm:px-8 lg:px-10">
-      {/* Header */}
-      <div className="mb-10 flex items-end justify-between border-b border-neutral-200 pb-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl">
+    <section id="koleksiyon" className="mx-auto w-full max-w-6xl scroll-mt-20 px-6 py-12 sm:px-8 lg:px-10">
+      {/* Header: heading, category filter, and "view all" in a single row.
+          The category list scrolls horizontally instead of wrapping, so
+          "Tümünü Gör" always stays pinned on the same line. */}
+      <div className="mb-8 flex flex-wrap items-center gap-x-8 gap-y-4 pb-6">
+        <h2 className="order-1 mr-4 shrink-0 font-serif text-2xl tracking-tight text-ink sm:order-none sm:mr-8 sm:text-3xl lg:mr-10">
           Koleksiyon
         </h2>
-        <p className="text-sm text-neutral-400">{products.length} ürün</p>
-      </div>
 
-      {/* Search + category filter */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Category pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          <button
-            type="button"
-            onClick={() => setActiveCategory("all")}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition ${
-              activeCategory === "all"
-                ? "bg-neutral-950 text-white"
-                : "bg-white text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 border border-neutral-200"
-            }`}
-          >
-            Tümü
-            <span className={`ml-1.5 tabular-nums ${activeCategory === "all" ? "opacity-60" : "opacity-50"}`}>
-              {products.length}
-            </span>
-          </button>
-
-          {visibleCategories.map((cat) => {
-            const count = products.filter((p) =>
-              categorySlugMap[cat.slug]?.includes(p.category?.slug ?? "")
-            ).length;
-            const isActive = activeCategory === cat.slug;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.slug)}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition ${
-                  isActive
-                    ? "bg-neutral-950 text-white"
-                    : "bg-white text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 border border-neutral-200"
-                }`}
-              >
-                {cat.name}
-                <span className={`ml-1.5 tabular-nums ${isActive ? "opacity-60" : "opacity-50"}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search */}
-        <div className="relative shrink-0 sm:w-52">
-          <svg
-            className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400 pointer-events-none"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Ürün ara..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-9 pr-4 text-xs text-neutral-950 outline-none transition focus:border-neutral-950 placeholder:text-neutral-400"
-          />
-          {search && (
+        <div className="relative order-3 w-full sm:order-none sm:w-auto sm:flex-1">
+          <div ref={pillsScrollRef} className="flex items-center gap-x-6 overflow-x-auto no-scrollbar">
             <button
               type="button"
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-950"
+              onClick={() => setActiveCategory("all")}
+              className={`shrink-0 text-sm font-medium transition ${
+                activeCategory === "all"
+                  ? "rounded-full bg-rust px-4 py-1.5 text-cream"
+                  : "text-brown-muted hover:text-ink"
+              }`}
             >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              Tümü
             </button>
+
+            {visibleCategories.map((cat) => {
+              const isActive = activeCategory === cat.slug;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.slug)}
+                  className={`shrink-0 text-sm font-medium transition ${
+                    isActive
+                      ? "rounded-full bg-rust px-4 py-1.5 text-cream"
+                      : "text-brown-muted hover:text-ink"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
+          {/* Hints that the pill row scrolls further, since the last item
+              otherwise gets cut off flush against the edge. Driven by real
+              overflow detection rather than a breakpoint guess, since
+              whether the pills fit depends on how many categories exist,
+              not just viewport width (e.g. it still overflows on iPad). */}
+          {canScrollRight && (
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-cream to-transparent" />
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => { setSearch(""); setActiveCategory("all"); }}
+          className="order-2 ml-auto flex shrink-0 items-center gap-1.5 text-sm font-medium text-brown transition hover:text-rust-dark sm:order-none"
+        >
+          Tümünü Gör
+          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+          </svg>
+        </button>
       </div>
 
       {/* Empty state */}
@@ -134,10 +143,12 @@ export function ProductGrid({ products, categories }: Props) {
         />
       ) : (
         <>
-          {(search || activeCategory !== "all") && (
-            <p className="mb-4 text-xs text-neutral-400">{filtered.length} ürün bulundu</p>
+          {search && (
+            <p className="mb-4 text-xs text-brown-muted">
+              &quot;{search}&quot; için {filtered.length} ürün bulundu
+            </p>
           )}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
             {filtered.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

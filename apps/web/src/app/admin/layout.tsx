@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -97,6 +97,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -104,20 +106,59 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }, [user, loading, isAdmin, router]);
 
+  // Close the mobile drawer on navigation, without an effect (the route
+  // change itself is the "event" — this just adjusts state during render).
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setMobileNavOpen(false);
+  }
+
   if (loading || !isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+      <div className="flex min-h-screen items-center justify-center bg-cream">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown-muted/20 border-t-rust" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-neutral-50">
+    <div className="flex min-h-screen bg-cream">
+      {/* Mobile/tablet top bar: sidebar is an off-canvas drawer below lg */}
+      <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-brown-muted/15 bg-cream-soft px-4 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileNavOpen((prev) => !prev)}
+          aria-label={mobileNavOpen ? "Menüyü kapat" : "Menüyü aç"}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded text-brown hover:bg-cream"
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            {mobileNavOpen ? (
+              <path d="M18 6 6 18M6 6l12 12" />
+            ) : (
+              <path d="M3 6h18M3 12h18M3 18h18" />
+            )}
+          </svg>
+        </button>
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-ink">
+          Zenore Admin
+        </span>
+      </div>
+
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-ink/40 lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-neutral-200 bg-white">
-        <div className="flex h-14 shrink-0 items-center border-b border-neutral-200 px-5">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-950">
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-brown-muted/15 bg-cream-soft transition-transform duration-200 lg:translate-x-0 ${
+          mobileNavOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-14 shrink-0 items-center border-b border-brown-muted/15 px-5">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-ink">
             Zenore Admin
           </span>
         </div>
@@ -132,8 +173,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={`flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-neutral-950 text-white"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+                    ? "bg-rust text-cream"
+                    : "text-brown hover:bg-cream hover:text-ink"
                 }`}
               >
                 {item.icon}
@@ -143,10 +184,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-neutral-200 p-2">
+        <div className="shrink-0 border-t border-brown-muted/15 p-2">
           <Link
             href="/"
-            className="flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-950"
+            className="flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium text-brown-muted transition-colors hover:bg-cream hover:text-ink"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -156,8 +197,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Content */}
-      <div className="ml-56 flex min-h-screen flex-1 flex-col">
+      {/* Content: scrolls independently so the browser's own page scrollbar
+          never shows — this container's scrollbar is hidden via .no-scrollbar. */}
+      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-y-auto no-scrollbar pt-14 lg:ml-56 lg:pt-0">
         {children}
       </div>
     </div>

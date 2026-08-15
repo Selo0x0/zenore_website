@@ -11,13 +11,13 @@ export default function CartPage() {
   const currency = items[0]?.currency ?? "TRY";
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-950">
+    <main className="min-h-screen bg-cream text-ink">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 lg:px-10">
-        <header className="flex flex-col gap-3 border-b border-neutral-200 pb-8">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-neutral-500">
+        <header className="flex flex-col gap-3 border-b border-brown-muted/15 pb-8">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-brown-muted">
             Zenore
           </p>
-          <h1 className="text-4xl font-semibold tracking-tight">Sepetim</h1>
+          <h1 className="font-serif text-4xl tracking-tight text-ink">Sepetim</h1>
         </header>
 
         {items.length === 0 ? (
@@ -34,43 +34,43 @@ export default function CartPage() {
               {items.map((item) => (
                 <article
                   key={item.productId}
-                  className="grid gap-4 border border-neutral-200 bg-white p-4 sm:grid-cols-[140px_1fr]"
+                  className="grid grid-cols-[96px_1fr] gap-4 border border-brown-muted/15 bg-cream-soft p-4 sm:grid-cols-[140px_1fr]"
                 >
                   <Link
                     href={`/products/${item.slug}`}
-                    className="relative aspect-square overflow-hidden bg-stone-100"
+                    className="relative aspect-square overflow-hidden bg-cream"
                   >
                     <ProductImage src={item.imageUrl} alt={item.imageAlt} />
                   </Link>
 
-                  <div className="flex flex-col justify-between gap-4">
+                  <div className="flex min-w-0 flex-col justify-between gap-3 sm:gap-4">
                     <div className="flex flex-col gap-2">
                       <Link
                         href={`/products/${item.slug}`}
-                        className="text-lg font-semibold hover:text-neutral-600"
+                        className="text-sm font-semibold leading-snug text-ink hover:text-rust-dark sm:text-lg"
                       >
                         {item.name}
                       </Link>
-                      <p className="text-sm text-neutral-500">
+                      <p className="text-sm text-brown-muted">
                         {formatPrice(item.priceKurus, item.currency)}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center border border-neutral-200">
+                    <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                      <div className="flex items-center border border-brown-muted/20">
                         <button
                           type="button"
-                          className="h-10 w-10 text-lg transition hover:bg-neutral-50"
+                          className="h-9 w-9 text-lg text-ink transition hover:bg-cream sm:h-10 sm:w-10"
                           onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                         >
                           −
                         </button>
-                        <span className="flex h-10 min-w-10 items-center justify-center px-3 text-sm font-medium">
+                        <span className="flex h-9 min-w-9 items-center justify-center px-2 text-sm font-medium text-ink sm:h-10 sm:min-w-10 sm:px-3">
                           {item.quantity}
                         </span>
                         <button
                           type="button"
-                          className="h-10 w-10 text-lg transition hover:bg-neutral-50"
+                          className="h-9 w-9 text-lg text-ink transition hover:bg-cream sm:h-10 sm:w-10"
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                         >
                           +
@@ -79,7 +79,7 @@ export default function CartPage() {
 
                       <button
                         type="button"
-                        className="text-sm font-medium text-neutral-400 transition hover:text-red-500"
+                        className="text-sm font-medium text-brown-muted transition hover:text-red-500"
                         onClick={() => removeItem(item.productId)}
                       >
                         Kaldır
@@ -90,37 +90,37 @@ export default function CartPage() {
               ))}
             </div>
 
-            <aside className="flex h-fit flex-col gap-5 border border-neutral-200 bg-white p-5">
-              <h2 className="text-lg font-semibold">Sipariş Özeti</h2>
+            <aside className="flex h-fit flex-col gap-5 border border-brown-muted/15 bg-cream-soft p-5">
+              <h2 className="font-serif text-lg text-ink">Sipariş Özeti</h2>
 
-              <div className="flex flex-col gap-2 border-t border-neutral-100 pt-4 text-sm">
+              <div className="flex flex-col gap-2 border-t border-brown-muted/15 pt-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Ara Toplam</span>
-                  <span className="font-medium">{formatPrice(subtotalKurus, currency)}</span>
+                  <span className="text-brown-muted">Ara Toplam</span>
+                  <span className="font-medium text-ink">{formatPrice(subtotalKurus, currency)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Kargo</span>
+                  <span className="text-brown-muted">Kargo</span>
                   <span className="font-medium text-green-600">Ücretsiz</span>
                 </div>
               </div>
 
-              <div className="flex justify-between border-t border-neutral-200 pt-4">
-                <span className="font-semibold">Toplam</span>
-                <span className="text-lg font-semibold">
+              <div className="flex justify-between border-t border-brown-muted/15 pt-4">
+                <span className="font-semibold text-ink">Toplam</span>
+                <span className="text-lg font-semibold text-ink">
                   {formatPrice(subtotalKurus, currency)}
                 </span>
               </div>
 
               <Link
                 href="/odeme"
-                className="flex h-12 items-center justify-center bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800"
+                className="flex h-12 items-center justify-center bg-rust px-6 text-sm font-semibold text-cream transition hover:bg-rust-dark"
               >
                 Siparişi Tamamla
               </Link>
 
               <button
                 type="button"
-                className="text-sm font-medium text-neutral-400 transition hover:text-neutral-950"
+                className="text-sm font-medium text-brown-muted transition hover:text-ink"
                 onClick={clearCart}
               >
                 Sepeti Temizle

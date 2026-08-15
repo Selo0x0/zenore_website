@@ -48,27 +48,27 @@ export default async function HakkimizdaPage() {
   const about = await getAbout();
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-950">
+    <main className="min-h-screen bg-cream text-ink">
       {/* Hero */}
-      <section className="border-b border-neutral-200 bg-white">
+      <section className="border-b border-brown-muted/15 bg-cream-soft">
         <div className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-brown-muted">
             Zenore
           </p>
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="max-w-2xl font-serif text-4xl leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl">
             {about.hero}
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-neutral-500">{about.heroSub}</p>
+          <p className="mt-6 max-w-xl text-lg text-brown-muted">{about.heroSub}</p>
         </div>
       </section>
 
       {/* Story + Image */}
       <section className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:px-10 lg:py-24">
         <div className="flex flex-col justify-center gap-6">
-          <h2 className="text-2xl font-semibold tracking-tight">Hikayemiz</h2>
-          <p className="text-base leading-8 text-neutral-600">{about.story}</p>
+          <h2 className="font-serif text-2xl tracking-tight text-ink">Hikayemiz</h2>
+          <p className="text-base leading-8 text-brown">{about.story}</p>
         </div>
-        <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+        <div className="relative aspect-[4/3] overflow-hidden bg-cream-soft">
           <Image
             src={resolveImageUrl(about.imageUrl)}
             alt="Zenore atölye"
@@ -81,16 +81,16 @@ export default async function HakkimizdaPage() {
       </section>
 
       {/* Values */}
-      <section className="border-t border-neutral-200 bg-white">
+      <section className="border-t border-brown-muted/15 bg-cream-soft">
         <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
-          <h2 className="mb-12 text-center text-2xl font-semibold tracking-tight">
+          <h2 className="mb-12 text-center font-serif text-2xl tracking-tight text-ink">
             Değerlerimiz
           </h2>
           <div className="grid gap-8 sm:grid-cols-3">
             {about.values.map((v) => (
-              <div key={v.title} className="flex flex-col gap-3 border border-neutral-100 bg-neutral-50 p-8">
-                <h3 className="text-base font-semibold">{v.title}</h3>
-                <p className="text-sm leading-7 text-neutral-500">{v.description}</p>
+              <div key={v.title} className="flex flex-col gap-3 border border-brown-muted/15 bg-cream p-8">
+                <h3 className="text-base font-semibold text-ink">{v.title}</h3>
+                <p className="text-sm leading-7 text-brown-muted">{v.description}</p>
               </div>
             ))}
           </div>

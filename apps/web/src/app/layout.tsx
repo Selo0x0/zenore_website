@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, PT_Serif } from "next/font/google";
 import { CartProvider } from "./cart/cart-context";
 import { FavoritesProvider } from "./favoriler/favorites-context";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -16,6 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Turkish characters (ğ, ş, ı, ç, ö, ü) require latin-ext, not just latin.
+const ptSerif = PT_Serif({
+  variable: "--font-pt-serif",
+  weight: ["400", "700"],
+  subsets: ["latin", "latin-ext"],
+});
+
 export const metadata: Metadata = {
   title: "Zenore",
   description: "Günlük kullanım için özenle üretilmiş hakiki deri ürünler.",
@@ -29,9 +36,9 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${ptSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-neutral-50 text-neutral-950">
+      <body className="min-h-full bg-cream text-ink">
         <AuthProvider>
           <CartProvider>
             <FavoritesProvider>

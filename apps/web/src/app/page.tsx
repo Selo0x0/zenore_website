@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-950">
+    <main className="min-h-screen bg-cream text-ink">
       <HomeHero />
       <TrustBadges />
       <Suspense fallback={<ProductGridSkeleton />}>

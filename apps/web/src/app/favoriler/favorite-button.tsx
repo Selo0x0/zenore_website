@@ -33,12 +33,12 @@ export function FavoriteButton({ item, variant = "overlay" }: Props) {
   const buttonClass =
     variant === "plain"
       ? "flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110 active:scale-95"
-      : "flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/70 shadow-sm backdrop-blur-sm transition hover:bg-white/90 hover:scale-110 active:scale-95";
+      : "flex h-8 w-8 items-center justify-center rounded-full border border-cream/40 bg-cream/70 shadow-sm backdrop-blur-sm transition hover:bg-cream/90 hover:scale-110 active:scale-95";
 
   const iconClass =
     variant === "plain"
-      ? `h-5 w-5 transition-colors ${favorited ? "fill-red-500 text-red-500" : "fill-none text-neutral-400 hover:text-neutral-700"}`
-      : `h-4 w-4 transition-colors ${favorited ? "fill-red-500 text-red-500" : "fill-none text-neutral-400"}`;
+      ? `h-5 w-5 transition-colors ${favorited ? "fill-red-500 text-red-500" : "fill-none text-brown-muted hover:text-brown"}`
+      : `h-4 w-4 transition-colors ${favorited ? "fill-red-500 text-red-500" : "fill-none text-brown-muted"}`;
 
   return (
     <>

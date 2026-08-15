@@ -43,15 +43,15 @@ const STATUS_COLORS: Record<string, string> = {
 
 function StatCard({ label, value, sub, icon }: { label: string; value: string | number; sub?: string; icon: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 border border-neutral-200 bg-white p-5 shadow-sm">
+    <div className="flex flex-col gap-3 border border-brown-muted/15 bg-cream-soft p-5 shadow-sm">
       <div className="flex items-start justify-between">
-        <p className="text-xs font-medium uppercase tracking-[0.15em] text-neutral-500">{label}</p>
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
+        <p className="text-xs font-medium uppercase tracking-[0.15em] text-brown-muted">{label}</p>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cream text-brown">
           {icon}
         </div>
       </div>
-      <p className="text-3xl font-bold text-neutral-950">{value}</p>
-      {sub && <p className="text-xs text-neutral-500">{sub}</p>}
+      <p className="text-3xl font-bold text-ink">{value}</p>
+      {sub && <p className="text-xs text-brown-muted">{sub}</p>}
     </div>
   );
 }
@@ -84,16 +84,16 @@ export default function AdminDashboard() {
   const today = new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="flex flex-col gap-8 p-8">
+    <div className="flex flex-col gap-8 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl text-neutral-800 font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-neutral-500">{today}</p>
+          <h1 className="font-serif text-2xl text-ink tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-sm text-brown-muted">{today}</p>
         </div>
         <Link
           href="/admin/siparisler"
-          className="bg-neutral-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800"
+          className="bg-rust px-4 py-2 text-sm font-medium text-cream transition hover:bg-rust-dark"
         >
           Siparişleri Gör
         </Link>
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 animate-pulse border border-neutral-200 bg-neutral-100" />
+            <div key={i} className="h-28 animate-pulse border border-brown-muted/15 bg-cream-soft" />
           ))}
         </div>
       ) : stats ? (
@@ -153,51 +153,74 @@ export default function AdminDashboard() {
 
       {/* Recent Orders */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Son Siparişler</h2>
-          <Link href="/admin/siparisler" className="text-sm text-neutral-500 hover:text-neutral-950">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-serif text-base text-ink">Son Siparişler</h2>
+          <Link href="/admin/siparisler" className="text-sm text-brown-muted hover:text-ink">
             Tümünü Gör →
           </Link>
         </div>
 
-        <div className="border border-neutral-200 bg-white">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+        {loading ? (
+          <div className="flex items-center justify-center border border-brown-muted/15 bg-cream-soft py-16">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brown-muted/20 border-t-rust" />
+          </div>
+        ) : recentOrders.length === 0 ? (
+          <p className="border border-brown-muted/15 bg-cream-soft py-16 text-center text-sm text-brown-muted">
+            Henüz sipariş yok.
+          </p>
+        ) : (
+          <>
+            {/* Mobile: card list */}
+            <div className="flex flex-col divide-y divide-brown-muted/10 border border-brown-muted/15 bg-cream-soft sm:hidden">
+              {recentOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-xs font-medium text-ink">{order.orderNumber}</p>
+                    <p className="truncate text-sm text-brown">{order.customerName}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] ?? "bg-cream text-brown"}`}>
+                      {STATUS_LABELS[order.status] ?? order.status}
+                    </span>
+                    <span className="text-sm font-semibold text-ink">{formatPrice(order.totalKurus, order.currency)}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : recentOrders.length === 0 ? (
-            <p className="py-16 text-center text-sm text-neutral-400">Henüz sipariş yok.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-100">
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Sipariş</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Müşteri</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Durum</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Toplam</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
-                    <td className="px-5 py-3.5 font-mono text-xs font-medium text-neutral-950">
-                      {order.orderNumber}
-                    </td>
-                    <td className="px-5 py-3.5 text-neutral-700">{order.customerName}</td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] ?? "bg-neutral-100 text-neutral-600"}`}>
-                        {STATUS_LABELS[order.status] ?? order.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-semibold text-neutral-950">
-                      {formatPrice(order.totalKurus, order.currency)}
-                    </td>
+
+            {/* sm and up: table */}
+            <div className="hidden overflow-x-auto no-scrollbar border border-brown-muted/15 bg-cream-soft sm:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-brown-muted/10">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-brown">Sipariş</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-brown">Müşteri</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-brown">Durum</th>
+                    <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.1em] text-brown">Toplam</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                </thead>
+                <tbody>
+                  {recentOrders.map((order) => (
+                    <tr key={order.id} className="border-b border-brown-muted/10 last:border-0 hover:bg-cream">
+                      <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs font-medium text-ink">
+                        {order.orderNumber}
+                      </td>
+                      <td className="px-5 py-3.5 text-brown">{order.customerName}</td>
+                      <td className="whitespace-nowrap px-5 py-3.5">
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] ?? "bg-cream text-brown"}`}>
+                          {STATUS_LABELS[order.status] ?? order.status}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-5 py-3.5 text-right font-semibold text-ink">
+                        {formatPrice(order.totalKurus, order.currency)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

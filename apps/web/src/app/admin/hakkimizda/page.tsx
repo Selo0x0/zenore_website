@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { apiUrl } from "../../products/product-data";
 import { ImageUploadField } from "../image-upload-field";
+import { AdminToast } from "../admin-toast";
 
 type Value = { title: string; description: string };
 type AboutContent = {
@@ -80,7 +81,7 @@ export default function AdminHakkimizdaPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown-muted/15 border-t-rust" />
       </div>
     );
   }
@@ -91,14 +92,14 @@ export default function AdminHakkimizdaPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-950">Hakkımızda</h1>
-          <p className="mt-1 text-sm text-neutral-500">Hakkımızda sayfası içeriğini düzenle</p>
+          <h1 className="font-serif text-2xl text-ink">Hakkımızda</h1>
+          <p className="mt-1 text-sm text-brown-muted">Hakkımızda sayfası içeriğini düzenle</p>
         </div>
         <button
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="bg-neutral-950 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
+          className="bg-rust px-6 py-2.5 text-sm font-medium text-cream transition hover:bg-rust-dark disabled:opacity-50"
         >
           {saving ? "Kaydediliyor..." : "Kaydet"}
         </button>
@@ -106,69 +107,69 @@ export default function AdminHakkimizdaPage() {
 
       <div className="flex flex-col gap-6">
         {/* Hero */}
-        <div className="rounded border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-neutral-500">Hero Bölümü</h2>
+        <div className="rounded border border-brown-muted/15 bg-cream-soft p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-brown-muted">Hero Bölümü</h2>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-neutral-500">Ana Başlık</label>
+              <label className="text-xs font-medium text-brown-muted">Ana Başlık</label>
               <input
                 type="text"
                 value={form.hero}
                 onChange={(e) => setForm((p) => ({ ...p, hero: e.target.value }))}
-                className="border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+                className="border border-brown-muted/15 bg-cream-soft px-3 py-2 text-sm text-ink outline-none focus:border-rust"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-neutral-500">Alt Başlık</label>
+              <label className="text-xs font-medium text-brown-muted">Alt Başlık</label>
               <input
                 type="text"
                 value={form.heroSub}
                 onChange={(e) => setForm((p) => ({ ...p, heroSub: e.target.value }))}
-                className="border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+                className="border border-brown-muted/15 bg-cream-soft px-3 py-2 text-sm text-ink outline-none focus:border-rust"
               />
             </div>
           </div>
         </div>
 
         {/* Story */}
-        <div className="rounded border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-neutral-500">Hikaye</h2>
+        <div className="rounded border border-brown-muted/15 bg-cream-soft p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-brown-muted">Hikaye</h2>
           <div className="flex flex-col gap-4">
             <textarea
               rows={5}
               value={form.story}
               onChange={(e) => setForm((p) => ({ ...p, story: e.target.value }))}
-              className="resize-none border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+              className="resize-none border border-brown-muted/15 bg-cream-soft px-3 py-2 text-sm text-ink outline-none focus:border-rust"
             />
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-neutral-500">Görsel</label>
+              <label className="text-xs font-medium text-brown-muted">Görsel</label>
               <ImageUploadField value={form.imageUrl} onChange={(v) => setForm((p) => ({ ...p, imageUrl: v }))} />
             </div>
           </div>
         </div>
 
         {/* Values */}
-        <div className="rounded border border-neutral-200 bg-white p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-neutral-500">Değerlerimiz</h2>
+        <div className="rounded border border-brown-muted/15 bg-cream-soft p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-brown-muted">Değerlerimiz</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {form.values.map((v, i) => (
-              <div key={i} className="flex flex-col gap-3 border border-neutral-100 p-4">
+              <div key={i} className="flex flex-col gap-3 border border-brown-muted/10 p-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-neutral-500">Başlık</label>
+                  <label className="text-xs font-medium text-brown-muted">Başlık</label>
                   <input
                     type="text"
                     value={v.title}
                     onChange={(e) => updateValue(i, "title", e.target.value)}
-                    className="border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+                    className="border border-brown-muted/15 bg-cream-soft px-3 py-2 text-sm text-ink outline-none focus:border-rust"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-neutral-500">Açıklama</label>
+                  <label className="text-xs font-medium text-brown-muted">Açıklama</label>
                   <textarea
                     rows={3}
                     value={v.description}
                     onChange={(e) => updateValue(i, "description", e.target.value)}
-                    className="resize-none border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950"
+                    className="resize-none border border-brown-muted/15 bg-cream-soft px-3 py-2 text-sm text-ink outline-none focus:border-rust"
                   />
                 </div>
               </div>
@@ -176,26 +177,6 @@ export default function AdminHakkimizdaPage() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function AdminToast({ message, type = "success" }: { message: string; type?: "success" | "error" }) {
-  const isError = type === "error";
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 shadow-2xl ring-1 ring-white/5">
-      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isError ? "bg-red-500/15" : "bg-emerald-500/15"}`}>
-        {isError ? (
-          <svg className="h-3.5 w-3.5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        ) : (
-          <svg className="h-3.5 w-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        )}
-      </div>
-      <span className="text-sm font-medium text-white">{message}</span>
     </div>
   );
 }

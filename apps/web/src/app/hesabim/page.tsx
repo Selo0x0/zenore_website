@@ -12,6 +12,7 @@ import { ProductImage } from "@/app/product-image";
 import { formatPrice } from "@/app/products/product-data";
 import { useFavorites } from "@/app/favoriler/favorites-context";
 import { FavoriteButton } from "@/app/favoriler/favorite-button";
+import { LocationSelect } from "@/app/location-select";
 
 type Customer = {
   id: string;
@@ -234,6 +235,16 @@ export default function HesabimPage() {
       return;
     }
 
+    if (!addressForm.city) {
+      showToast("Lütfen il seçiniz.");
+      return;
+    }
+
+    if (!addressForm.district) {
+      showToast("Lütfen ilçe seçiniz.");
+      return;
+    }
+
     setAddressSaving(true);
     try {
       const token = await user.getIdToken();
@@ -281,9 +292,9 @@ export default function HesabimPage() {
 
   if (authLoading || dataLoading) {
     return (
-      <main className="min-h-screen bg-neutral-50">
+      <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown-muted/20 border-t-rust" />
         </div>
       </main>
     );
@@ -293,15 +304,15 @@ export default function HesabimPage() {
 
   if (loadError || !customer) {
     return (
-      <main className="min-h-screen bg-neutral-50">
+      <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 px-5 py-32 text-center">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-brown-muted">
             Hesap bilgileriniz yüklenemedi. Lütfen tekrar deneyin.
           </p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="h-10 bg-neutral-950 px-6 text-sm font-medium text-white transition hover:bg-neutral-800"
+            className="h-10 bg-rust px-6 text-sm font-medium text-cream transition hover:bg-rust-dark"
           >
             Tekrar Dene
           </button>
@@ -328,14 +339,14 @@ export default function HesabimPage() {
   return (
     <>
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
-      <main className="min-h-screen bg-neutral-50 text-neutral-950">
+      <main className="min-h-screen bg-cream text-ink">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
         {/* Page header */}
-        <div className="mb-8 border-b border-neutral-200 pb-6">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-neutral-400">
+        <div className="mb-8 border-b border-brown-muted/15 pb-6">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-brown-muted">
             Hesabım
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">
             Merhaba, {firstName}
           </h1>
         </div>
@@ -343,15 +354,15 @@ export default function HesabimPage() {
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
           {/* Sidebar */}
           <aside className="lg:w-60 lg:shrink-0">
-            <div className="border border-neutral-200 bg-white p-6">
-              <div className="flex flex-col items-center gap-3 border-b border-neutral-100 pb-6">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-950 text-2xl font-semibold text-white">
+            <div className="border border-brown-muted/15 bg-cream-soft p-6">
+              <div className="flex flex-col items-center gap-3 border-b border-brown-muted/15 pb-6">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rust text-2xl font-semibold text-cream">
                   {initial}
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold">{displayName}</p>
-                  <p className="mt-0.5 text-xs text-neutral-400">{customer.email}</p>
-                  <p className="mt-1 text-xs text-neutral-400">Üye: {memberSince}</p>
+                  <p className="font-semibold text-ink">{displayName}</p>
+                  <p className="mt-0.5 text-xs text-brown-muted">{customer.email}</p>
+                  <p className="mt-1 text-xs text-brown-muted">Üye: {memberSince}</p>
                 </div>
               </div>
 
@@ -368,8 +379,8 @@ export default function HesabimPage() {
                     }}
                     className={`rounded-sm px-3 py-2.5 text-left text-sm font-medium transition ${
                       tab === key
-                        ? "bg-neutral-950 text-white"
-                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950"
+                        ? "bg-rust text-cream"
+                        : "text-brown hover:bg-cream hover:text-ink"
                     }`}
                   >
                     {label}
@@ -383,12 +394,12 @@ export default function HesabimPage() {
           <div className="flex-1">
             {/* ACCOUNT TAB */}
             {tab === "account" && (
-              <div className="border border-neutral-200 bg-white p-6 sm:p-8">
-                <h2 className="mb-6 text-lg font-semibold">Hesap Bilgileri</h2>
+              <div className="border border-brown-muted/15 bg-cream-soft p-6 sm:p-8">
+                <h2 className="mb-6 font-serif text-lg text-ink">Hesap Bilgileri</h2>
                 <form onSubmit={saveAccount} className="flex flex-col gap-5">
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         Ad Soyad
                       </label>
                       <input
@@ -398,22 +409,22 @@ export default function HesabimPage() {
                           setAccountForm((p) => ({ ...p, displayName: e.target.value }))
                         }
                         placeholder="Ad Soyad"
-                        className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                        className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         E-posta
                       </label>
                       <input
                         type="email"
                         value={customer.email}
                         readOnly
-                        className="border border-neutral-100 bg-neutral-100 px-3 py-2.5 text-sm text-neutral-400 outline-none"
+                        className="border border-brown-muted/15 bg-cream-soft px-3 py-2.5 text-sm text-brown-muted outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-neutral-700">
+                      <label className="text-sm font-medium text-brown">
                         Telefon
                       </label>
                       <input
@@ -423,16 +434,16 @@ export default function HesabimPage() {
                           setAccountForm((p) => ({ ...p, phone: sanitizePhoneInput(e.target.value) }))
                         }
                         placeholder="0555 000 00 00"
-                        className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                        className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 border-t border-neutral-100 pt-4">
+                  <div className="flex items-center gap-4 border-t border-brown-muted/15 pt-4">
                     <button
                       type="submit"
                       disabled={accountSaving}
-                      className="bg-neutral-950 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60"
+                      className="bg-rust px-6 py-2.5 text-sm font-medium text-cream transition hover:bg-rust-dark disabled:opacity-60"
                     >
                       {accountSaving ? "Kaydediliyor..." : "Kaydet"}
                     </button>
@@ -448,15 +459,15 @@ export default function HesabimPage() {
 
             {/* ADDRESSES TAB */}
             {tab === "addresses" && (
-              <div className="border border-neutral-200 bg-white p-6 sm:p-8">
+              <div className="border border-brown-muted/15 bg-cream-soft p-6 sm:p-8">
                 {addressView === "list" ? (
                   <>
                     <div className="mb-6 flex items-center justify-between">
-                      <h2 className="text-lg font-semibold">Adres Defteri</h2>
+                      <h2 className="font-serif text-lg text-ink">Adres Defteri</h2>
                       <button
                         type="button"
                         onClick={openAddForm}
-                        className="bg-neutral-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800"
+                        className="bg-rust px-4 py-2 text-sm font-medium text-cream transition hover:bg-rust-dark"
                       >
                         + Yeni Adres Ekle
                       </button>
@@ -464,9 +475,9 @@ export default function HesabimPage() {
 
                     {addresses.length === 0 ? (
                       <div className="flex flex-col items-center gap-4 py-16 text-center">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cream">
                           <svg
-                            className="h-7 w-7 text-neutral-400"
+                            className="h-7 w-7 text-brown-muted"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -479,17 +490,17 @@ export default function HesabimPage() {
                           </svg>
                         </div>
                         <div>
-                          <p className="font-medium text-neutral-700">
+                          <p className="font-medium text-brown">
                             Kayıtlı adresiniz yok
                           </p>
-                          <p className="mt-1 text-sm text-neutral-400">
+                          <p className="mt-1 text-sm text-brown-muted">
                             Hızlı alışveriş için adreslerinizi kaydedin.
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={openAddForm}
-                          className="mt-2 border border-neutral-200 px-5 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-neutral-950 hover:text-neutral-950"
+                          className="mt-2 border border-brown-muted/20 px-5 py-2.5 text-sm font-medium text-brown transition hover:border-rust-dark hover:text-ink"
                         >
                           İlk Adresinizi Ekleyin
                         </button>
@@ -501,48 +512,48 @@ export default function HesabimPage() {
                             key={addr.id}
                             className={`relative flex flex-col gap-3 border p-5 ${
                               addr.isDefault
-                                ? "border-neutral-950"
-                                : "border-neutral-200"
+                                ? "border-rust-dark"
+                                : "border-brown-muted/15"
                             }`}
                           >
                             {addr.isDefault && (
-                              <span className="absolute right-4 top-4 bg-neutral-950 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                              <span className="absolute right-4 top-4 bg-rust px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cream">
                                 Varsayılan
                               </span>
                             )}
                             <div>
                               {addr.label && (
-                                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brown-muted">
                                   {addr.label}
                                 </p>
                               )}
-                              <p className="font-medium">{addr.fullName}</p>
-                              <p className="mt-1 text-sm text-neutral-500">{addr.phone}</p>
-                              <p className="mt-2 text-sm leading-6 text-neutral-600">
+                              <p className="font-medium text-ink">{addr.fullName}</p>
+                              <p className="mt-1 text-sm text-brown-muted">{addr.phone}</p>
+                              <p className="mt-2 text-sm leading-6 text-brown">
                                 {addr.address}, {addr.district}, {addr.city}
                               </p>
                             </div>
-                            <div className="flex items-center gap-3 border-t border-neutral-100 pt-3 text-xs font-medium">
+                            <div className="flex items-center gap-3 border-t border-brown-muted/15 pt-3 text-xs font-medium">
                               <button
                                 type="button"
                                 onClick={() => openEditForm(addr)}
-                                className="text-neutral-500 transition hover:text-neutral-950"
+                                className="text-brown-muted transition hover:text-ink"
                               >
                                 Düzenle
                               </button>
                               {!addr.isDefault && (
                                 <>
-                                  <span className="text-neutral-200">|</span>
+                                  <span className="text-brown-muted/30">|</span>
                                   <button
                                     type="button"
                                     onClick={() => handleSetDefault(addr.id)}
-                                    className="text-neutral-500 transition hover:text-neutral-950"
+                                    className="text-brown-muted transition hover:text-ink"
                                   >
                                     Varsayılan Yap
                                   </button>
                                 </>
                               )}
-                              <span className="text-neutral-200">|</span>
+                              <span className="text-brown-muted/30">|</span>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteAddress(addr.id)}
@@ -563,20 +574,20 @@ export default function HesabimPage() {
                       <button
                         type="button"
                         onClick={() => setAddressView("list")}
-                        className="text-sm text-neutral-400 transition hover:text-neutral-950"
+                        className="text-sm text-brown-muted transition hover:text-ink"
                       >
                         ← Geri
                       </button>
-                      <h2 className="text-lg font-semibold">
+                      <h2 className="font-serif text-lg text-ink">
                         {editingAddress ? "Adresi Düzenle" : "Yeni Adres Ekle"}
                       </h2>
                     </div>
                     <form onSubmit={saveAddress} className="flex flex-col gap-5">
                       <div className="grid gap-5 sm:grid-cols-2">
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-sm font-medium text-neutral-700">
+                          <label className="text-sm font-medium text-brown">
                             Adres Başlığı{" "}
-                            <span className="font-normal text-neutral-400">
+                            <span className="font-normal text-brown-muted">
                               (opsiyonel)
                             </span>
                           </label>
@@ -587,11 +598,11 @@ export default function HesabimPage() {
                               setAddressForm((p) => ({ ...p, label: e.target.value }))
                             }
                             placeholder="Ev, İş..."
-                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                            className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                           />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-sm font-medium text-neutral-700">
+                          <label className="text-sm font-medium text-brown">
                             Ad Soyad <span className="text-red-500">*</span>
                           </label>
                           <input
@@ -602,11 +613,11 @@ export default function HesabimPage() {
                               setAddressForm((p) => ({ ...p, fullName: e.target.value }))
                             }
                             placeholder="Ad Soyad"
-                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                            className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                           />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-sm font-medium text-neutral-700">
+                          <label className="text-sm font-medium text-brown">
                             Telefon <span className="text-red-500">*</span>
                           </label>
                           <input
@@ -617,50 +628,36 @@ export default function HesabimPage() {
                               setAddressForm((p) => ({ ...p, phone: sanitizePhoneInput(e.target.value) }))
                             }
                             placeholder="0555 000 00 00"
-                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                            className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                           />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-sm font-medium text-neutral-700">
+                          <label className="text-sm font-medium text-brown">
                             İl <span className="text-red-500">*</span>
                           </label>
-                          <select
-                            required
+                          <LocationSelect
                             value={addressForm.city}
-                            onChange={(e) =>
-                              setAddressForm((p) => ({ ...p, city: e.target.value, district: "" }))
-                            }
-                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
-                          >
-                            <option value="">İl Seçiniz</option>
-                            {PROVINCES.map((p) => (
-                              <option key={p.name} value={p.name}>{p.name}</option>
-                            ))}
-                          </select>
+                            onChange={(city) => setAddressForm((p) => ({ ...p, city, district: "" }))}
+                            options={PROVINCES.map((p) => p.name)}
+                            placeholder="İl Seçiniz"
+                          />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-sm font-medium text-neutral-700">
+                          <label className="text-sm font-medium text-brown">
                             İlçe <span className="text-red-500">*</span>
                           </label>
-                          <select
-                            required
+                          <LocationSelect
                             value={addressForm.district}
+                            onChange={(district) => setAddressForm((p) => ({ ...p, district }))}
+                            options={PROVINCES.find((p) => p.name === addressForm.city)?.districts ?? []}
+                            placeholder="İlçe Seçiniz"
                             disabled={!addressForm.city}
-                            onChange={(e) =>
-                              setAddressForm((p) => ({ ...p, district: e.target.value }))
-                            }
-                            className="border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value="">İlçe Seçiniz</option>
-                            {(PROVINCES.find((p) => p.name === addressForm.city)?.districts ?? []).map((d) => (
-                              <option key={d} value={d}>{d}</option>
-                            ))}
-                          </select>
+                          />
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-neutral-700">
+                        <label className="text-sm font-medium text-brown">
                           Açık Adres <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -671,7 +668,7 @@ export default function HesabimPage() {
                             setAddressForm((p) => ({ ...p, address: e.target.value }))
                           }
                           placeholder="Mahalle, sokak, bina no, daire..."
-                          className="resize-none border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-950 focus:bg-white"
+                          className="resize-none border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                         />
                       </div>
 
@@ -682,25 +679,25 @@ export default function HesabimPage() {
                           onChange={(e) =>
                             setAddressForm((p) => ({ ...p, isDefault: e.target.checked }))
                           }
-                          className="h-4 w-4 accent-neutral-950"
+                          className="h-4 w-4 accent-rust"
                         />
-                        <span className="text-sm text-neutral-700">
+                        <span className="text-sm text-brown">
                           Varsayılan adres olarak kaydet
                         </span>
                       </label>
 
-                      <div className="flex items-center gap-3 border-t border-neutral-100 pt-4">
+                      <div className="flex items-center gap-3 border-t border-brown-muted/15 pt-4">
                         <button
                           type="submit"
                           disabled={addressSaving}
-                          className="bg-neutral-950 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60"
+                          className="bg-rust px-6 py-2.5 text-sm font-medium text-cream transition hover:bg-rust-dark disabled:opacity-60"
                         >
                           {addressSaving ? "Kaydediliyor..." : "Adresi Kaydet"}
                         </button>
                         <button
                           type="button"
                           onClick={() => setAddressView("list")}
-                          className="px-4 py-2.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-950"
+                          className="px-4 py-2.5 text-sm font-medium text-brown-muted transition hover:text-ink"
                         >
                           İptal
                         </button>
@@ -713,7 +710,7 @@ export default function HesabimPage() {
 
             {/* ORDERS TAB */}
             {tab === "orders" && (
-              <div className="border border-neutral-200 bg-white p-6 sm:p-8">
+              <div className="border border-brown-muted/15 bg-cream-soft p-6 sm:p-8">
                 {selectedOrder ? (
                   /* ── ORDER DETAIL ── */
                   <>
@@ -721,17 +718,17 @@ export default function HesabimPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedOrder(null)}
-                        className="text-sm text-neutral-400 transition hover:text-neutral-950"
+                        className="text-sm text-brown-muted transition hover:text-ink"
                       >
                         ← Siparişlerime Dön
                       </button>
                     </div>
 
                     <div className="mb-6">
-                      <p className="font-mono text-sm font-semibold text-neutral-700">
+                      <p className="font-mono text-sm font-semibold text-brown">
                         {selectedOrder.orderNumber}
                       </p>
-                      <p className="mt-0.5 text-xs text-neutral-400">
+                      <p className="mt-0.5 text-xs text-brown-muted">
                         {new Date(selectedOrder.createdAt).toLocaleDateString("tr-TR", {
                           day: "numeric",
                           month: "long",
@@ -747,8 +744,9 @@ export default function HesabimPage() {
                         </span>
                       </div>
                     ) : (
-                      <div className="mb-8 overflow-x-auto pb-2">
-                        <div className="flex min-w-[380px] items-start">
+                      <div className="relative mb-8">
+                        <div className="overflow-x-auto pb-2">
+                          <div className="flex min-w-[380px] items-start">
                           {STATUS_STEPS.map((step, i) => {
                             const currentIdx = (STATUS_STEPS as readonly string[]).indexOf(
                               selectedOrder.status,
@@ -762,19 +760,19 @@ export default function HesabimPage() {
                                     <div className="flex-1" />
                                   ) : (
                                     <div
-                                      className={`h-px flex-1 transition-colors ${isReached ? "bg-neutral-950" : "bg-neutral-200"}`}
+                                      className={`h-px flex-1 transition-colors ${isReached ? "bg-rust" : "bg-brown-muted/20"}`}
                                     />
                                   )}
                                   <div
                                     className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors ${
                                       isReached
-                                        ? "border-neutral-950 bg-neutral-950"
-                                        : "border-neutral-200 bg-white"
+                                        ? "border-rust bg-rust"
+                                        : "border-brown-muted/20 bg-cream-soft"
                                     }`}
                                   >
                                     {isReached && (
                                       <svg
-                                        className="h-3.5 w-3.5 text-white"
+                                        className="h-3.5 w-3.5 text-cream"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -790,13 +788,13 @@ export default function HesabimPage() {
                                     <div className="flex-1" />
                                   ) : (
                                     <div
-                                      className={`h-px flex-1 transition-colors ${i < currentIdx ? "bg-neutral-950" : "bg-neutral-200"}`}
+                                      className={`h-px flex-1 transition-colors ${i < currentIdx ? "bg-rust" : "bg-brown-muted/20"}`}
                                     />
                                   )}
                                 </div>
                                 <p
                                   className={`mt-2 text-center text-[10px] leading-tight ${
-                                    isReached ? "font-semibold text-neutral-950" : "text-neutral-400"
+                                    isReached ? "font-semibold text-ink" : "text-brown-muted"
                                   }`}
                                 >
                                   {STATUS_LABELS[step]}
@@ -804,36 +802,38 @@ export default function HesabimPage() {
                               </div>
                             );
                           })}
+                          </div>
                         </div>
+                        <div className="pointer-events-none absolute right-0 top-0 h-7 w-8 bg-gradient-to-l from-cream-soft to-transparent sm:hidden" />
                       </div>
                     )}
 
                     {/* Items */}
                     <div className="mb-6">
-                      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-brown-muted">
                         Ürünler
                       </h3>
                       <div className="flex flex-col gap-4">
                         {selectedOrder.items.map((item) => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-neutral-100">
+                            <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-cream">
                               {item.productImageUrl ? (
                                 <ProductImage
                                   src={`${apiUrl}/images/products/${item.productImageUrl}`}
                                   alt={item.productImageAlt ?? item.productName}
                                 />
                               ) : (
-                                <div className="h-full w-full bg-neutral-100" />
+                                <div className="h-full w-full bg-cream" />
                               )}
                             </div>
                             <div className="flex flex-1 flex-col gap-0.5 min-w-0">
-                              <p className="truncate text-sm font-medium">{item.productName}</p>
-                              <p className="text-xs text-neutral-400">
+                              <p className="truncate text-sm font-medium text-ink">{item.productName}</p>
+                              <p className="text-xs text-brown-muted">
                                 {item.quantity} adet ×{" "}
                                 {formatPrice(item.unitPriceKurus, selectedOrder.currency)}
                               </p>
                             </div>
-                            <p className="shrink-0 text-sm font-semibold">
+                            <p className="shrink-0 text-sm font-semibold text-ink">
                               {formatPrice(item.lineTotalKurus, selectedOrder.currency)}
                             </p>
                           </div>
@@ -842,36 +842,36 @@ export default function HesabimPage() {
                     </div>
 
                     {/* Shipping address */}
-                    <div className="mb-6 border-t border-neutral-100 pt-5">
-                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                    <div className="mb-6 border-t border-brown-muted/15 pt-5">
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-brown-muted">
                         Teslimat Adresi
                       </h3>
-                      <p className="text-sm font-medium text-neutral-700">
+                      <p className="text-sm font-medium text-brown">
                         {selectedOrder.shippingName}
                       </p>
-                      <p className="text-sm text-neutral-500">{selectedOrder.shippingPhone}</p>
-                      <p className="mt-1 text-sm leading-6 text-neutral-600">
+                      <p className="text-sm text-brown-muted">{selectedOrder.shippingPhone}</p>
+                      <p className="mt-1 text-sm leading-6 text-brown">
                         {selectedOrder.shippingAddress}, {selectedOrder.shippingDistrict},{" "}
                         {selectedOrder.shippingCity}
                       </p>
                     </div>
 
                     {/* Price breakdown */}
-                    <div className="border-t border-neutral-100 pt-5">
+                    <div className="border-t border-brown-muted/15 pt-5">
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-neutral-500">Ara Toplam</span>
-                          <span>
+                          <span className="text-brown-muted">Ara Toplam</span>
+                          <span className="text-ink">
                             {formatPrice(selectedOrder.subtotalKurus, selectedOrder.currency)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-neutral-500">Kargo</span>
+                          <span className="text-brown-muted">Kargo</span>
                           <span className="font-medium text-green-600">Ücretsiz</span>
                         </div>
                         {selectedOrder.discountKurus > 0 && (
                           <div className="flex justify-between">
-                            <span className="text-neutral-500">
+                            <span className="text-brown-muted">
                               İndirim{selectedOrder.discountCode ? ` (${selectedOrder.discountCode})` : ""}
                             </span>
                             <span className="font-medium text-emerald-600">
@@ -879,7 +879,7 @@ export default function HesabimPage() {
                             </span>
                           </div>
                         )}
-                        <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold">
+                        <div className="flex justify-between border-t border-brown-muted/15 pt-2 font-semibold text-ink">
                           <span>Toplam</span>
                           <span>
                             {formatPrice(selectedOrder.totalKurus, selectedOrder.currency)}
@@ -891,17 +891,17 @@ export default function HesabimPage() {
                 ) : (
                   /* ── ORDER LIST ── */
                   <>
-                    <h2 className="mb-6 text-lg font-semibold">Siparişlerim</h2>
+                    <h2 className="mb-6 font-serif text-lg text-ink">Siparişlerim</h2>
 
                     {ordersLoading ? (
                       <div className="flex justify-center py-16">
-                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown-muted/20 border-t-rust" />
                       </div>
                     ) : orders.length === 0 ? (
                       <div className="flex flex-col items-center gap-5 py-16 text-center">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-cream">
                           <svg
-                            className="h-9 w-9 text-neutral-300"
+                            className="h-9 w-9 text-brown-muted/50"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -915,20 +915,20 @@ export default function HesabimPage() {
                           </svg>
                         </div>
                         <div>
-                          <p className="text-lg font-semibold">Henüz siparişiniz yok</p>
-                          <p className="mt-1 text-sm text-neutral-400">
+                          <p className="text-lg font-semibold text-ink">Henüz siparişiniz yok</p>
+                          <p className="mt-1 text-sm text-brown-muted">
                             İlk siparişinizi verin, burada görüntülensin.
                           </p>
                         </div>
                         <Link
                           href="/"
-                          className="mt-2 bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+                          className="mt-2 bg-rust px-7 py-3 text-sm font-medium text-cream transition hover:bg-rust-dark"
                         >
                           Alışverişe Başla
                         </Link>
                       </div>
                     ) : (
-                      <div className="flex flex-col divide-y divide-neutral-100">
+                      <div className="flex flex-col divide-y divide-brown-muted/15">
                         {orders.map((order) => {
                           const firstItem = order.items[0];
                           const extraCount = order.items.length - 1;
@@ -937,32 +937,32 @@ export default function HesabimPage() {
                               key={order.id}
                               className="flex items-center gap-4 py-5 first:pt-0 last:pb-0"
                             >
-                              <div className="relative h-16 w-16 shrink-0 overflow-hidden bg-neutral-100">
+                              <div className="relative h-16 w-16 shrink-0 overflow-hidden bg-cream">
                                 {firstItem?.productImageUrl ? (
                                   <ProductImage
                                     src={`${apiUrl}/images/products/${firstItem.productImageUrl}`}
                                     alt={firstItem.productImageAlt ?? firstItem.productName}
                                   />
                                 ) : (
-                                  <div className="h-full w-full bg-neutral-100" />
+                                  <div className="h-full w-full bg-cream" />
                                 )}
                               </div>
 
                               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                <p className="truncate text-sm font-semibold">
+                                <p className="truncate text-sm font-semibold text-ink">
                                   {firstItem?.productName}
                                 </p>
                                 {extraCount > 0 && (
-                                  <p className="text-xs text-neutral-400">
+                                  <p className="text-xs text-brown-muted">
                                     ve {extraCount} ürün daha
                                   </p>
                                 )}
-                                <div className="mt-1 flex flex-wrap items-center gap-2">
-                                  <span className="font-mono text-xs text-neutral-400">
+                                <div className="mt-1 flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                                  <span className="font-mono text-xs text-brown-muted">
                                     {order.orderNumber}
                                   </span>
-                                  <span className="text-xs text-neutral-300">·</span>
-                                  <span className="text-xs text-neutral-400">
+                                  <span className="hidden text-xs text-brown-muted/40 sm:inline">·</span>
+                                  <span className="text-xs text-brown-muted">
                                     {new Date(order.createdAt).toLocaleDateString("tr-TR", {
                                       day: "numeric",
                                       month: "long",
@@ -978,13 +978,13 @@ export default function HesabimPage() {
                                 >
                                   {STATUS_LABELS[order.status]}
                                 </span>
-                                <p className="text-sm font-semibold">
+                                <p className="text-sm font-semibold text-ink">
                                   {formatPrice(order.totalKurus, order.currency)}
                                 </p>
                                 <button
                                   type="button"
                                   onClick={() => setSelectedOrder(order)}
-                                  className="text-xs font-medium text-neutral-500 transition hover:text-neutral-950"
+                                  className="text-xs font-medium text-brown-muted transition hover:text-ink"
                                 >
                                   Detaylar →
                                 </button>
@@ -1000,14 +1000,14 @@ export default function HesabimPage() {
             )}
             {/* FAVORITES TAB */}
             {tab === "favorites" && (
-              <div className="border border-neutral-200 bg-white p-6 sm:p-8">
-                <h2 className="mb-6 text-lg font-semibold">Favorilerim</h2>
+              <div className="border border-brown-muted/15 bg-cream-soft p-6 sm:p-8">
+                <h2 className="mb-6 font-serif text-lg text-ink">Favorilerim</h2>
 
                 {favorites.length === 0 ? (
                   <div className="flex flex-col items-center gap-5 py-16 text-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-cream">
                       <svg
-                        className="h-9 w-9 text-neutral-300"
+                        className="h-9 w-9 text-brown-muted/50"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -1019,14 +1019,14 @@ export default function HesabimPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold">Henüz favori ürününüz yok</p>
-                      <p className="mt-1 text-sm text-neutral-400">
+                      <p className="text-lg font-semibold text-ink">Henüz favori ürününüz yok</p>
+                      <p className="mt-1 text-sm text-brown-muted">
                         Ürünlerin üzerindeki kalp ikonuna tıklayarak favorilerinize ekleyin.
                       </p>
                     </div>
                     <Link
                       href="/"
-                      className="mt-2 bg-neutral-950 px-7 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+                      className="mt-2 bg-rust px-7 py-3 text-sm font-medium text-cream transition hover:bg-rust-dark"
                     >
                       Alışverişe Başla
                     </Link>
@@ -1036,19 +1036,19 @@ export default function HesabimPage() {
                     {favorites.map((item) => (
                       <div
                         key={item.productId}
-                        className="flex gap-4 border border-neutral-200 p-3"
+                        className="flex gap-4 border border-brown-muted/15 p-3"
                       >
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-neutral-100">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-cream">
                           <ProductImage src={item.imageUrl} alt={item.imageAlt} />
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-0.5">
                           <Link
                             href={`/products/${item.slug}`}
-                            className="truncate text-sm font-semibold hover:text-neutral-600"
+                            className="truncate text-sm font-semibold text-ink hover:text-rust-dark"
                           >
                             {item.name}
                           </Link>
-                          <p className="text-sm font-medium text-neutral-500">
+                          <p className="text-sm font-medium text-brown-muted">
                             {formatPrice(item.priceKurus, item.currency)}
                           </p>
                         </div>

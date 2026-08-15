@@ -100,6 +100,7 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
         }),
       });
       router.push("/admin/urunler?saved=1");
+      window.scrollTo(0, 0);
     } catch (err: unknown) {
       setError((err as { message?: string })?.message ?? "Bir hata oluştu.");
     } finally {
@@ -110,7 +111,7 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-950" />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-brown-muted/15 border-t-rust" />
       </div>
     );
   }
@@ -121,12 +122,12 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
         <button
           type="button"
           onClick={() => router.push("/admin/urunler")}
-          className="text-sm text-neutral-500 hover:text-neutral-950"
+          className="text-sm text-brown-muted hover:text-ink"
         >
           ← Ürünler
         </button>
-        <span className="text-neutral-300">/</span>
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-800">Ürünü Düzenle</h1>
+        <span className="text-brown-muted">/</span>
+        <h1 className="font-serif text-2xl tracking-tight text-ink">Ürünü Düzenle</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -199,7 +200,7 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">Görseller</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-brown">Görseller</span>
           {imageUrls.map((url, i) => (
             <div key={i} className="flex gap-2">
               <ImageUploadField value={url} onChange={(v) => updateImageUrl(i, v)} className="flex-1" />
@@ -207,7 +208,7 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
                 <button
                   type="button"
                   onClick={() => removeImageUrl(i)}
-                  className="shrink-0 self-start px-2 pt-2 text-neutral-400 hover:text-red-500"
+                  className="shrink-0 self-start px-2 pt-2 text-brown-muted hover:text-red-500"
                 >
                   ✕
                 </button>
@@ -217,7 +218,7 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
           <button
             type="button"
             onClick={() => setImageUrls((prev) => [...prev, ""])}
-            className="self-start text-xs font-medium text-neutral-500 hover:text-neutral-950"
+            className="self-start text-xs font-medium text-brown-muted hover:text-ink"
           >
             + Görsel Ekle
           </button>
@@ -225,18 +226,18 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <div className="flex gap-3 border-t border-neutral-100 pt-4">
+        <div className="flex gap-3 border-t border-brown-muted/10 pt-4">
           <button
             type="submit"
             disabled={saving}
-            className="bg-neutral-950 px-6 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
+            className="bg-rust px-6 py-2 text-sm font-medium text-cream transition hover:bg-rust-dark disabled:opacity-50"
           >
             {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/admin/urunler")}
-            className="border border-neutral-200 px-6 py-2 text-sm font-medium text-neutral-600 transition hover:border-neutral-950 hover:text-neutral-950"
+            className="border border-brown-muted/15 px-6 py-2 text-sm font-medium text-brown transition hover:border-rust hover:text-ink"
           >
             İptal
           </button>
@@ -249,12 +250,12 @@ export default function EditUrunPage({ params }: { params: Promise<{ id: string 
 }
 
 const inputCls =
-  "w-full border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950";
+  "w-full border border-brown-muted/15 bg-cream-soft px-3 py-2 text-sm text-ink outline-none focus:border-rust";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-600">{label}</label>
+      <label className="text-xs font-semibold uppercase tracking-[0.1em] text-brown">{label}</label>
       {children}
     </div>
   );

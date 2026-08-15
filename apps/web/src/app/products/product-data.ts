@@ -23,7 +23,16 @@ export type Product = {
   stockQuantity: number;
   images: ProductImageMetadata[];
   category?: { slug: string; name: string } | null;
+  createdAt?: string;
 };
+
+const NEW_PRODUCT_WINDOW_DAYS = 30;
+
+export function isNewProduct(createdAt?: string): boolean {
+  if (!createdAt) return false;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  return ageMs <= NEW_PRODUCT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+}
 
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
