@@ -26,6 +26,19 @@ const ptSerif = PT_Serif({
 export const metadata: Metadata = {
   title: "Zenore",
   description: "Günlük kullanım için özenle üretilmiş hakiki deri ürünler.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  openGraph: {
+    title: "Zenore",
+    description: "Günlük kullanım için özenle üretilmiş hakiki deri ürünler.",
+    siteName: "Zenore",
+    locale: "tr_TR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zenore",
+    description: "Günlük kullanım için özenle üretilmiş hakiki deri ürünler.",
+  },
 };
 
 export default function RootLayout({

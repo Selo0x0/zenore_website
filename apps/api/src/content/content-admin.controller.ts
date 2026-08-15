@@ -10,6 +10,7 @@ import {
 import type { Prisma } from '@zenore/db';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsAdminGuard } from '../auth/is-admin.guard';
+import { ParseJsonObjectPipe } from '../common/pipes/parse-json-object.pipe';
 import { ContentService } from './content.service';
 
 @Controller('admin')
@@ -20,7 +21,7 @@ export class ContentAdminController {
   @Put('site-content/:key')
   async upsertContent(
     @Param('key') key: string,
-    @Body() body: Prisma.InputJsonValue,
+    @Body(new ParseJsonObjectPipe()) body: Prisma.InputJsonValue,
   ) {
     return this.content.upsertContent(key, body);
   }
