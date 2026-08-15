@@ -14,14 +14,14 @@ type AboutContent = {
   heroSub: string;
   story: string;
   values: Value[];
-  imageUrl: string;
+  imageUrl?: string;
 };
 
 function resolveImageUrl(value: string) {
   return value.startsWith("http") ? value : `${apiUrl}/images/products/${value}`;
 }
 
-async function getAbout(): Promise<AboutContent> {
+async function getAbout(): Promise<AboutContent | null> {
   try {
     const res = await fetch(`${internalApiUrl}/site-content/about`, {
       cache: "no-store",
@@ -29,23 +29,20 @@ async function getAbout(): Promise<AboutContent> {
     if (!res.ok) throw new Error();
     return res.json() as Promise<AboutContent>;
   } catch {
-    return {
-      hero: "Deriyle Başlayan Bir Hikaye",
-      heroSub: "2018'den bu yana hakiki deri ile el işçiliğini buluşturuyoruz.",
-      story:
-        "Zenore, 2018 yılında İstanbul'da küçük bir atölyede kuruldu. Her ürün, yılların tecrübesiyle seçilen ham derilerden, ustalıkla işlenerek hayata geçirilmektedir.",
-      values: [
-        { title: "El İşçiliği", description: "Her dikiş, her kesim elle yapılır." },
-        { title: "Hakiki Deri", description: "Yalnızca birinci sınıf ham deri kullanıyoruz." },
-        { title: "Ömür Boyu Kalite", description: "Onlarca yıl size eşlik edecek ürünler." },
-      ],
-      imageUrl: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&q=80",
-    };
+    return null;
   }
 }
 
 export default async function HakkimizdaPage() {
   const about = await getAbout();
+
+  if (!about) {
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center bg-cream text-center text-brown-muted">
+        İçerik şu anda yüklenemiyor.
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-cream text-ink">
@@ -63,21 +60,27 @@ export default async function HakkimizdaPage() {
       </section>
 
       {/* Story + Image */}
-      <section className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:px-10 lg:py-24">
-        <div className="flex flex-col justify-center gap-6">
+      <section
+        className={`mx-auto grid w-full max-w-6xl gap-12 px-5 py-16 sm:px-8 lg:gap-20 lg:px-10 lg:py-24 ${
+          about.imageUrl ? "lg:grid-cols-2" : ""
+        }`}
+      >
+        <div className="flex max-w-2xl flex-col justify-center gap-6">
           <h2 className="font-serif text-2xl tracking-tight text-ink">Hikayemiz</h2>
           <p className="text-base leading-8 text-brown">{about.story}</p>
         </div>
-        <div className="relative aspect-[4/3] overflow-hidden bg-cream-soft">
-          <Image
-            src={resolveImageUrl(about.imageUrl)}
-            alt="Zenore atölye"
-            fill
-            className="object-cover"
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            unoptimized
-          />
-        </div>
+        {about.imageUrl && (
+          <div className="relative aspect-[4/3] overflow-hidden bg-cream-soft">
+            <Image
+              src={resolveImageUrl(about.imageUrl)}
+              alt="Zenore atölye"
+              fill
+              className="object-cover"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              unoptimized
+            />
+          </div>
+        )}
       </section>
 
       {/* Values */}

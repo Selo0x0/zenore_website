@@ -5,9 +5,9 @@ import { MailService } from '../mail/mail.service';
 
 const DEFAULT_ABOUT = {
   hero: 'Deriyle Başlayan Bir Hikaye',
-  heroSub: "2018'den bu yana hakiki deri ile el işçiliğini buluşturuyoruz.",
+  heroSub: 'Hakiki deri ile el işçiliğini buluşturuyoruz.',
   story:
-    "Zenore, 2018 yılında İstanbul'da küçük bir atölyede kuruldu. Her ürün, yılların tecrübesiyle seçilen ham derilerden, ustalıkla işlenerek hayata geçirilmektedir. Biz sadece çanta ya da cüzdan yapmıyoruz; nesiller boyu taşınacak eserler yaratıyoruz.",
+    'Her ürün, yılların tecrübesiyle seçilen ham derilerden, ustalıkla işlenerek hayata geçirilmektedir. Biz sadece çanta ya da cüzdan yapmıyoruz; nesiller boyu taşınacak eserler yaratıyoruz.',
   values: [
     {
       title: 'El İşçiliği',
@@ -25,17 +25,11 @@ const DEFAULT_ABOUT = {
         'Ürünlerimiz, doğru bakımla onlarca yıl size eşlik edecek şekilde tasarlanmıştır.',
     },
   ],
-  imageUrl:
-    'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&q=80',
 };
 
 const DEFAULT_CONTACT = {
   email: 'info@zenore.com',
-  phone: '+90 532 123 45 67',
-  address: 'Kapalıçarşı, Beyazıt, İstanbul',
   hours: 'Hafta içi 09:00 – 18:00',
-  instagram: 'zenore_leather',
-  whatsapp: '+905321234567',
 };
 
 const DEFAULTS: Record<string, unknown> = {

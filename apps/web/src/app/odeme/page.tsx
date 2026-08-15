@@ -470,8 +470,15 @@ export default function OdemePage() {
 
               <p className="text-center text-xs text-brown-muted">
                 Siparişi onaylayarak{" "}
-                <span className="underline">kullanım koşullarını</span> kabul etmiş
-                olursunuz.
+                <Link
+                  href="/kullanim-kosullari"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-rust-dark"
+                >
+                  kullanım koşullarını
+                </Link>{" "}
+                kabul etmiş olursunuz.
               </p>
             </aside>
           </div>

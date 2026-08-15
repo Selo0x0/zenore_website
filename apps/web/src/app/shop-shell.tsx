@@ -7,6 +7,7 @@ import { CartLink } from "./cart/cart-link";
 import { HeaderSearch } from "./header-search";
 import { AuthNav } from "./auth-nav";
 import { MainNav } from "./nav";
+import { SiteFooter } from "./site-footer";
 import type { ReactNode } from "react";
 
 export function ShopShell({ children }: { children: ReactNode }) {
@@ -44,6 +45,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
         </header>
       )}
       {children}
+      {!isAdmin && <SiteFooter />}
     </>
   );
 }
