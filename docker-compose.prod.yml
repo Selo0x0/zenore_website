@@ -21,6 +21,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   api:
     build:
@@ -29,7 +35,23 @@ services:
     container_name: zenore-api
     restart: unless-stopped
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Hits the existing DB-backed health route (app.controller.ts) rather
+      # than just GET / — confirms the API can actually reach Postgres, not
+      # just that the Node process is up.
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:4000/health/database',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     environment:
       NODE_ENV: production
       API_PORT: 4000
@@ -70,14 +92,28 @@ services:
       # public domain. This is a fixed internal value, not user-configurable.
       API_INTERNAL_URL: http://api:4000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   bugsink:
     image: bugsink/bugsink:2
     container_name: zenore-bugsink
     restart: unless-stopped
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SECRET_KEY: ${BUGSINK_SECRET_KEY}
       CREATE_SUPERUSER: ${BUGSINK_ADMIN_EMAIL}:${BUGSINK_ADMIN_PASSWORD}
@@ -102,9 +138,14 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - web
-      - api
-      - bugsink
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      # bugsink has no healthcheck defined (third-party image, internals
+      # not under our control) — just wait for the container to start.
+      bugsink:
+        condition: service_started
 
 volumes:
   postgres_data:
