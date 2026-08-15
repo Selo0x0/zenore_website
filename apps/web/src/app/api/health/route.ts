@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-
 export function GET() {
-  return NextResponse.json({ status: "ok" });
+  return new Response(JSON.stringify({ status: "ok" }), {
+    headers: { "content-type": "application/json" },
+  });
 }
