@@ -7,7 +7,6 @@ import {
 import { randomInt } from 'node:crypto';
 import { isValidTurkishPhone } from '../common/phone.util';
 import { DiscountsService } from '../discounts/discounts.service';
-import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type CreateOrderDto = {
@@ -65,7 +64,6 @@ export class OrdersService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mail: MailService,
     private readonly discounts: DiscountsService,
   ) {}
 
@@ -226,8 +224,6 @@ export class OrdersService {
         select: orderSelect,
       });
     });
-
-    void this.mail.sendOrderConfirmation(order, customer.customerEmail);
 
     return order;
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { ProductImage } from "@/app/product-image";
@@ -23,6 +24,7 @@ type Order = {
   id: string;
   orderNumber: string;
   status: string;
+  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   currency: string;
   subtotalKurus: number;
   shippingKurus: number;
@@ -39,6 +41,7 @@ export default function SiparisOnayPage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = use(params);
+  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,6 +59,12 @@ export default function SiparisOnayPage({
       try {
         const token = await user.getIdToken();
         const data = await apiFetch<Order>(`/orders/${orderNumber}`, token);
+        if (data.paymentStatus !== "PAID") {
+          // This route only ever represents a completed order — anything
+          // still pending/failed payment belongs on the payment step.
+          router.replace(`/odeme/${orderNumber}`);
+          return;
+        }
         setOrder(data);
       } catch {
         // order not found
@@ -63,7 +72,7 @@ export default function SiparisOnayPage({
         setLoading(false);
       }
     })();
-  }, [user, orderNumber]);
+  }, [user, orderNumber, router]);
 
   if (authLoading || loading) {
     return (

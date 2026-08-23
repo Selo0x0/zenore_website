@@ -193,6 +193,9 @@ model Order {
   discountCode    String?
   discountKurus   Int           @default(0)
   totalKurus      Int
+  paymentReference   String?    @unique
+  paidAt             DateTime?
+  paymentRawResponse Json?
   items           OrderItem[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

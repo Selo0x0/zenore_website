@@ -130,7 +130,6 @@ describe('OrdersService', () => {
     $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(tx)),
   };
 
-  const mail = { sendOrderConfirmation: jest.fn() };
   const discounts = { validateCode: jest.fn() };
 
   let service: OrdersService;
@@ -139,7 +138,6 @@ describe('OrdersService', () => {
     jest.clearAllMocks();
     service = new OrdersService(
       prisma as unknown as PrismaService,
-      mail as any,
       discounts as any,
     );
   });
