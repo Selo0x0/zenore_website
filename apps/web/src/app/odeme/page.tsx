@@ -185,7 +185,7 @@ export default function OdemePage() {
       });
       orderPlacedRef.current = true;
       clearCart();
-      router.push(`/siparis/${order.orderNumber}`);
+      router.push(`/odeme/${order.orderNumber}`);
     } catch (err) {
       showToast(toTurkishError(err instanceof Error ? err.message : ""));
     } finally {

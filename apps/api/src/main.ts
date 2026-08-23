@@ -10,6 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const port = process.env.API_PORT ?? process.env.PORT ?? 4000;
 
+  // Trust the first hop (Caddy) so req.ip/@Ip() reflect the real client IP
+  // instead of Caddy's internal address — needed for PayTR's user_ip field.
+  app.set('trust proxy', 1);
+
   // 'cross-origin' (not Helmet's default 'same-origin') because in dev the
   // web app (:3000) and API (:4000) are different origins, and product
   // images are loaded cross-origin via <img>/next/image. Access control for

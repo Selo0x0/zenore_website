@@ -13,6 +13,7 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+import { PaymentsModule } from './payments/payments.module';
 import { StorageModule } from './storage/storage.module';
 import { ImagesModule } from './images/images.module';
 
@@ -34,6 +35,7 @@ import { ImagesModule } from './images/images.module';
     PrismaModule,
     ProductsModule,
     OrdersModule,
+    PaymentsModule,
     StorageModule,
     ImagesModule,
     ContentModule,
