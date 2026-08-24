@@ -23,7 +23,7 @@ export function HomeHero() {
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-rust-dark">
           Hakiki deri. Zamansız şıklık.
         </p>
-        <h1 className="max-w-2xl font-serif text-4xl leading-tight tracking-tight text-ink sm:text-6xl">
+        <h1 className="max-w-2xl font-serif text-4xl leading-tight tracking-tight text-ink sm:text-6xl font-medium!">
           Nesilden nesile değer katan detaylar.
         </h1>
         <p className="mt-6 max-w-md text-base leading-7 text-brown sm:text-lg">
