@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, PT_Serif } from "next/font/google";
+import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import { CartProvider } from "./cart/cart-context";
 import { FavoritesProvider } from "./favoriler/favorites-context";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -17,9 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 // Turkish characters (ğ, ş, ı, ç, ö, ü) require latin-ext, not just latin.
-const ptSerif = PT_Serif({
-  variable: "--font-pt-serif",
-  weight: ["400", "700"],
+// 500 = Medium (the client's requested base weight), 700 = Bold, used for
+// h1/h2 via the .font-serif heading rule in globals.css.
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  weight: ["500", "700"],
   subsets: ["latin", "latin-ext"],
 });
 
@@ -49,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} ${ptSerif.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-cream text-ink">
         <AuthProvider>

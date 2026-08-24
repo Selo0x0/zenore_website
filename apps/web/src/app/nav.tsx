@@ -40,7 +40,7 @@ export function MainNav() {
   }
 
   const itemClass = (active: boolean) =>
-    `whitespace-nowrap text-sm font-medium transition ${
+    `whitespace-nowrap text-sm font-medium uppercase transition ${
       active ? "text-rust-dark underline underline-offset-8" : "text-brown hover:text-ink"
     }`;
 
@@ -75,7 +75,7 @@ export function MainNav() {
                       <Link
                         href={`/kategori/${cat.slug}`}
                         onClick={() => setOpenDropdown(null)}
-                        className={`block px-4 py-2 text-sm transition ${
+                        className={`block px-4 py-2 text-sm uppercase transition ${
                           isActive(`/kategori/${cat.slug}`)
                             ? "bg-cream text-ink"
                             : "text-brown hover:bg-cream hover:text-ink"
@@ -89,7 +89,7 @@ export function MainNav() {
                         <Link
                           href={`/kategori/${child.slug}`}
                           onClick={() => setOpenDropdown(null)}
-                          className={`block px-4 py-2 text-sm transition ${
+                          className={`block px-4 py-2 text-sm uppercase transition ${
                             isActive(`/kategori/${child.slug}`)
                               ? "bg-cream text-ink"
                               : "text-brown hover:bg-cream hover:text-ink"
@@ -143,7 +143,7 @@ export function MainNav() {
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
-                className="block py-3 text-sm font-medium text-brown hover:text-ink"
+                className="block py-3 text-sm font-medium uppercase text-brown hover:text-ink"
               >
                 Ana Sayfa
               </Link>
@@ -157,7 +157,7 @@ export function MainNav() {
                       <button
                         type="button"
                         onClick={() => toggleDropdown(cat.id)}
-                        className="flex w-full items-center justify-between py-3 text-sm font-medium text-brown"
+                        className="flex w-full items-center justify-between py-3 text-sm font-medium uppercase text-brown"
                       >
                         {cat.name}
                         <svg
@@ -173,7 +173,7 @@ export function MainNav() {
                             <Link
                               href={`/kategori/${cat.slug}`}
                               onClick={() => setMobileOpen(false)}
-                              className="block py-1 text-sm text-brown-muted hover:text-ink"
+                              className="block py-1 text-sm uppercase text-brown-muted hover:text-ink"
                             >
                               Tümü
                             </Link>
@@ -183,7 +183,7 @@ export function MainNav() {
                               <Link
                                 href={`/kategori/${child.slug}`}
                                 onClick={() => setMobileOpen(false)}
-                                className="block py-1 text-sm text-brown-muted hover:text-ink"
+                                className="block py-1 text-sm uppercase text-brown-muted hover:text-ink"
                               >
                                 {child.name}
                               </Link>
@@ -196,7 +196,7 @@ export function MainNav() {
                     <Link
                       href={`/kategori/${cat.slug}`}
                       onClick={() => setMobileOpen(false)}
-                      className="block py-3 text-sm font-medium text-brown hover:text-ink"
+                      className="block py-3 text-sm font-medium uppercase text-brown hover:text-ink"
                     >
                       {cat.name}
                     </Link>
@@ -209,7 +209,7 @@ export function MainNav() {
                 <Link
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block py-3 text-sm font-medium text-brown hover:text-ink"
+                  className="block py-3 text-sm font-medium uppercase text-brown hover:text-ink"
                 >
                   {item.label}
                 </Link>
