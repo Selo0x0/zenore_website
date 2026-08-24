@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
+/* --font-serif carries the Storefront Numerals face too (not just
+   var(--font-cormorant)) so that the numerals override still applies on
+   elements using the `font-serif` utility directly, e.g. the payment total
+   and trust-badge labels — a directly-applied font-family always wins over
+   an inherited one, so relying on .storefront's inherited stack alone
+   misses those. See the @font-face comment below for the full story. */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-pt-serif);
+  --font-serif: "Storefront Numerals", var(--font-cormorant);
 }
 
 /* Brand palette — extracted from the client's reference design.
@@ -23,8 +29,39 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Cormorant Garamond's numerals and currency symbols read as noticeably
+   less clear than its letterforms (this was a specific client complaint —
+   prices/₺ looked "confusing"). Rather than hunt down and wrap every place
+   a number renders (prices, quantities, dates, admin stats...), declare a
+   font face that covers *only* digits/numeric punctuation/common currency
+   symbols and put it first in the stack below — the browser renders any
+   character this face doesn't claim (i.e. every letter) with the next font
+   in the list instead. One rule, works everywhere automatically, including
+   future additions. */
+@font-face {
+  font-family: "Storefront Numerals";
+  src: local("Segoe UI"), local("Helvetica Neue"), local("Arial"), local("sans-serif");
+  unicode-range: U+0030-0039, U+002E, U+002C, U+0025, U+002B, U+002D,
+    U+20BA, U+0024, U+20AC, U+00A3;
+}
+
+/* Storefront brand typography: Cormorant Garamond everywhere, applied via a
+   wrapper class (set in shop-shell.tsx) so /admin — an internal tool, not a
+   brand surface — is unaffected and keeps the plain sans font above. Form
+   fields are excluded even on the storefront: a thin high-contrast serif in
+   an <input> a customer is typing an address into is a real typo risk during
+   checkout, not just a taste call. */
+.storefront {
+  font-family: "Storefront Numerals", var(--font-cormorant), Georgia, "Times New Roman", serif;
+}
+
+.storefront input,
+.storefront textarea {
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
 /* Reference design sets serif headings in a bold weight; smaller serif
-   labels (e.g. trust badges) stay at the font's regular weight. */
+   labels (e.g. trust badges) stay at the font's regular (medium) weight. */
 h1.font-serif, h2.font-serif {
   font-weight: 700;
 }

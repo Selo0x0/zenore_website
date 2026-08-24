@@ -17,7 +17,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-ink"
+            className="flex flex-col items-start gap-1 text-sm font-semibold uppercase tracking-[0.18em] text-ink"
           >
             <Image src="/zenore-mark.png" alt="" width={32} height={32} className="h-8 w-8" />
             Zenore

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Resend } from 'resend';
+
+const BREVO_SEND_URL = 'https://api.brevo.com/v3/smtp/email';
 
 type OrderItem = {
   productName: string;
@@ -27,13 +28,41 @@ function formatPrice(kurus: number, currency: string) {
 
 @Injectable()
 export class MailService {
-  private readonly resend: Resend;
-  private readonly from: string;
+  private readonly apiKey: string | undefined;
+  private readonly from: string | undefined;
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
-    this.from = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev';
+    this.apiKey = process.env.BREVO_API_KEY;
+    this.from = process.env.BREVO_FROM_EMAIL;
+  }
+
+  private async send(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<unknown> {
+    if (!this.apiKey || !this.from) {
+      throw new Error('BREVO_API_KEY / BREVO_FROM_EMAIL is not configured');
+    }
+    const res = await fetch(BREVO_SEND_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': this.apiKey,
+      },
+      body: JSON.stringify({
+        sender: { email: this.from, name: 'Zenore' },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Brevo send failed (${res.status}): ${text}`);
+    }
+    return res.json();
   }
 
   async sendContactNotification(data: {
@@ -45,15 +74,14 @@ export class MailService {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (!adminEmail) return;
     try {
-      await this.resend.emails.send({
-        from: this.from,
-        to: adminEmail,
-        subject: `Yeni iletişim mesajı — ${data.name}`,
-        html: `<p><strong>Ad:</strong> ${data.name}</p>
+      await this.send(
+        adminEmail,
+        `Yeni iletişim mesajı — ${data.name}`,
+        `<p><strong>Ad:</strong> ${data.name}</p>
 <p><strong>E-posta:</strong> ${data.email}</p>
 ${data.subject ? `<p><strong>Konu:</strong> ${data.subject}</p>` : ''}
 <p><strong>Mesaj:</strong><br>${data.message.replace(/\n/g, '<br>')}</p>`,
-      });
+      );
     } catch (err) {
       this.logger.error('Failed to send contact notification', err);
     }
@@ -67,12 +95,11 @@ ${data.subject ? `<p><strong>Konu:</strong> ${data.subject}</p>` : ''}
       this.logger.log(
         `Sending order confirmation to ${to} for ${order.orderNumber}`,
       );
-      const result = await this.resend.emails.send({
-        from: this.from,
-        to: to,
-        subject: `Siparişiniz alındı — ${order.orderNumber}`,
-        html: this.buildHtml(order),
-      });
+      const result = await this.send(
+        to,
+        `Siparişiniz alındı — ${order.orderNumber}`,
+        this.buildHtml(order),
+      );
       this.logger.log(`Email sent: ${JSON.stringify(result)}`);
     } catch (err) {
       this.logger.error('Failed to send order confirmation email', err);
