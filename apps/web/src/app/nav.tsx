@@ -14,7 +14,8 @@ export function MainNav() {
   const pathname = usePathname();
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [desktopDropdownId, setDesktopDropdownId] = useState<string | null>(null);
+  const [mobileCategoryId, setMobileCategoryId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLLIElement | null>(null);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function MainNav() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setOpenDropdown(null);
+        setDesktopDropdownId(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -35,8 +36,17 @@ export function MainNav() {
     return pathname === href || pathname.startsWith(href + "/");
   }
 
-  function toggleDropdown(id: string) {
-    setOpenDropdown((prev) => (prev === id ? null : id));
+  function toggleDesktopDropdown(id: string) {
+    setDesktopDropdownId((prev) => (prev === id ? null : id));
+  }
+
+  function toggleMobileCategory(id: string) {
+    setMobileCategoryId((prev) => (prev === id ? null : id));
+  }
+
+  function closeMobileMenu() {
+    setMobileOpen(false);
+    setMobileCategoryId(null);
   }
 
   const itemClass = (active: boolean) =>
@@ -61,20 +71,21 @@ export function MainNav() {
 
           if (hasChildren) {
             return (
-              <li key={cat.id} className="relative" ref={openDropdown === cat.id ? dropdownRef : null}>
+              <li key={cat.id} className="relative" ref={desktopDropdownId === cat.id ? dropdownRef : null}>
                 <button
                   type="button"
-                  onClick={() => toggleDropdown(cat.id)}
+                  onClick={() => toggleDesktopDropdown(cat.id)}
+                  aria-expanded={desktopDropdownId === cat.id}
                   className={itemClass(!!active)}
                 >
                   {cat.name}
                 </button>
-                {openDropdown === cat.id && (
+                {desktopDropdownId === cat.id && (
                   <ul className="absolute left-0 top-full z-50 mt-3 min-w-44 border border-brown-muted/15 bg-cream-soft py-1 shadow-lg">
                     <li>
                       <Link
                         href={`/kategori/${cat.slug}`}
-                        onClick={() => setOpenDropdown(null)}
+                        onClick={() => setDesktopDropdownId(null)}
                         className={`block px-4 py-2 text-sm uppercase transition ${
                           isActive(`/kategori/${cat.slug}`)
                             ? "bg-cream text-ink"
@@ -88,7 +99,7 @@ export function MainNav() {
                       <li key={child.id}>
                         <Link
                           href={`/kategori/${child.slug}`}
-                          onClick={() => setOpenDropdown(null)}
+                          onClick={() => setDesktopDropdownId(null)}
                           className={`block px-4 py-2 text-sm uppercase transition ${
                             isActive(`/kategori/${child.slug}`)
                               ? "bg-cream text-ink"
@@ -126,9 +137,16 @@ export function MainNav() {
       {/* Mobile hamburger */}
       <button
         type="button"
-        onClick={() => setMobileOpen((prev) => !prev)}
+        onClick={() => {
+          setMobileOpen((prev) => {
+            const next = !prev;
+            if (!next) setMobileCategoryId(null);
+            return next;
+          });
+        }}
         className="ml-auto flex flex-col gap-1.5 xl:hidden"
         aria-label="Menüyü aç"
+        aria-expanded={mobileOpen}
       >
         <span className={`block h-px w-6 bg-ink transition-transform ${mobileOpen ? "translate-y-2 rotate-45" : ""}`} />
         <span className={`block h-px w-6 bg-ink transition-opacity ${mobileOpen ? "opacity-0" : ""}`} />
@@ -142,7 +160,7 @@ export function MainNav() {
             <li>
               <Link
                 href="/"
-                onClick={() => setMobileOpen(false)}
+                onClick={closeMobileMenu}
                 className="block py-3 text-sm font-medium uppercase text-brown hover:text-ink"
               >
                 Ana Sayfa
@@ -150,30 +168,35 @@ export function MainNav() {
             </li>
             {categories.map((cat) => {
               const hasChildren = cat.children && cat.children.length > 0;
+              const submenuId = `mobile-category-${cat.id}`;
+              const expanded = mobileCategoryId === cat.id;
+
               return (
                 <li key={cat.id}>
                   {hasChildren ? (
                     <>
                       <button
                         type="button"
-                        onClick={() => toggleDropdown(cat.id)}
+                        onClick={() => toggleMobileCategory(cat.id)}
+                        aria-expanded={expanded}
+                        aria-controls={submenuId}
                         className="flex w-full items-center justify-between py-3 text-sm font-medium uppercase text-brown"
                       >
                         {cat.name}
                         <svg
-                          className={`h-3 w-3 transition-transform ${openDropdown === cat.id ? "rotate-180" : ""}`}
+                          className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`}
                           viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"
                         >
                           <path d="M2 4l4 4 4-4" />
                         </svg>
                       </button>
-                      {openDropdown === cat.id && (
-                        <ul className="mb-2 ml-3 flex flex-col gap-2">
+                      {expanded && (
+                        <ul id={submenuId} className="mb-2 ml-3 flex flex-col gap-2 border-l border-brown-muted/15 pl-4">
                           <li>
                             <Link
                               href={`/kategori/${cat.slug}`}
-                              onClick={() => setMobileOpen(false)}
-                              className="block py-1 text-sm uppercase text-brown-muted hover:text-ink"
+                              onClick={closeMobileMenu}
+                              className="block py-1.5 text-sm uppercase text-brown-muted hover:text-ink"
                             >
                               Tümü
                             </Link>
@@ -182,8 +205,8 @@ export function MainNav() {
                             <li key={child.id}>
                               <Link
                                 href={`/kategori/${child.slug}`}
-                                onClick={() => setMobileOpen(false)}
-                                className="block py-1 text-sm uppercase text-brown-muted hover:text-ink"
+                                onClick={closeMobileMenu}
+                                className="block py-1.5 text-sm uppercase text-brown-muted hover:text-ink"
                               >
                                 {child.name}
                               </Link>
@@ -195,7 +218,7 @@ export function MainNav() {
                   ) : (
                     <Link
                       href={`/kategori/${cat.slug}`}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={closeMobileMenu}
                       className="block py-3 text-sm font-medium uppercase text-brown hover:text-ink"
                     >
                       {cat.name}
@@ -208,7 +231,7 @@ export function MainNav() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobileMenu}
                   className="block py-3 text-sm font-medium uppercase text-brown hover:text-ink"
                 >
                   {item.label}
