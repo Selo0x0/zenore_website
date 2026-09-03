@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { apiUrl } from "@/app/products/product-data";
+import { signInWithGoogle, syncCustomerProfile } from "@/lib/auth";
+import { AuthGoogleButton } from "../auth-google-button";
 
 export default function KayitPage() {
   return (
@@ -25,6 +26,7 @@ function KayitForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,24 +38,7 @@ function KayitForm() {
 
       await updateProfile(credential.user, { displayName });
 
-      const token = await credential.user.getIdToken();
-
-      const res = await fetch(`${apiUrl}/customers/me`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ displayName }),
-      });
-
-      if (!res.ok) {
-        setError(
-          "Hesabınız oluşturuldu ancak profil kaydedilemedi. Lütfen giriş yapmayı deneyin.",
-        );
-        setLoading(false);
-        return;
-      }
+      await syncCustomerProfile(credential.user, displayName);
 
       router.push(redirect);
       window.scrollTo(0, 0);
@@ -77,6 +62,21 @@ function KayitForm() {
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setGoogleLoading(true);
+
+    try {
+      await signInWithGoogle();
+      router.push(redirect);
+      window.scrollTo(0, 0);
+    } catch {
+      setError("Google ile kayıt/giriş yapılamadı. Lütfen tekrar deneyin.");
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -146,12 +146,24 @@ function KayitForm() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || googleLoading}
             className="h-11 bg-rust text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:bg-brown-muted/40"
           >
             {loading ? "Hesap oluşturuluyor..." : "Kayıt Ol"}
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-brown-muted/20" />
+          <span className="text-xs uppercase tracking-[0.18em] text-brown-muted">veya</span>
+          <span className="h-px flex-1 bg-brown-muted/20" />
+        </div>
+
+        <AuthGoogleButton
+          onClick={handleGoogleSignIn}
+          disabled={loading || googleLoading}
+          loading={googleLoading}
+        />
 
         <p className="mt-6 text-center text-sm text-brown-muted">
           Zaten hesabın var mı?{" "}

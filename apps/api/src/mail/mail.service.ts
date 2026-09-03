@@ -106,6 +106,63 @@ ${data.subject ? `<p><strong>Konu:</strong> ${data.subject}</p>` : ''}
     }
   }
 
+  async sendPasswordReset(to: string, resetUrl: string): Promise<void> {
+    try {
+      await this.send(
+        to,
+        'Zenore şifre sıfırlama bağlantınız',
+        this.buildPasswordResetHtml(resetUrl),
+      );
+    } catch (err) {
+      this.logger.error('Failed to send password reset email', err);
+      throw err;
+    }
+  }
+
+  private buildPasswordResetHtml(resetUrl: string): string {
+    return `<!DOCTYPE html>
+<html lang="tr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td>
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;">
+        <tr>
+          <td style="padding:28px 32px;border-bottom:1px solid #e5e5e5;">
+            <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Zenore</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <h1 style="margin:0 0 12px;font-size:22px;font-weight:600;color:#111;">Şifrenizi sıfırlayın</h1>
+            <p style="margin:0 0 18px;font-size:14px;line-height:1.7;color:#555;">
+              Zenore hesabınız için şifre sıfırlama talebi aldık.
+            </p>
+            <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#555;">
+              Yeni şifrenizi belirlemek için aşağıdaki bağlantıya tıklayın.
+            </p>
+            <p style="margin:0 0 28px;">
+              <a href="${resetUrl}" style="display:inline-block;background:#a46230;color:#fff;text-decoration:none;padding:12px 22px;font-size:14px;font-weight:700;">
+                Şifremi Sıfırla
+              </a>
+            </p>
+            <p style="margin:0;font-size:12px;line-height:1.7;color:#888;">
+              Bu işlemi siz başlatmadıysanız bu e-postayı dikkate almayabilirsiniz.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:22px 32px;border-top:1px solid #e5e5e5;background:#fafafa;">
+            <p style="margin:0;font-size:11px;color:#bbb;letter-spacing:0.1em;text-transform:uppercase;">Zenore</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+  }
+
   private buildHtml(order: OrderEmailData): string {
     const itemRows = order.items
       .map(

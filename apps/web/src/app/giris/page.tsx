@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { apiUrl } from "@/app/products/product-data";
+import { signInWithGoogle, syncCustomerProfile } from "@/lib/auth";
+import { AuthGoogleButton } from "../auth-google-button";
 
 export default function GirisPage() {
   return (
@@ -24,6 +25,7 @@ function GirisForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,12 +34,7 @@ function GirisForm() {
 
     try {
       const credential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await credential.user.getIdToken();
-
-      await fetch(`${apiUrl}/customers/me`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await syncCustomerProfile(credential.user);
 
       router.push(redirect);
       window.scrollTo(0, 0);
@@ -45,6 +42,21 @@ function GirisForm() {
       setError("E-posta veya şifre hatalı. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setGoogleLoading(true);
+
+    try {
+      await signInWithGoogle();
+      router.push(redirect);
+      window.scrollTo(0, 0);
+    } catch {
+      setError("Google ile giriş yapılamadı. Lütfen tekrar deneyin.");
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -77,9 +89,17 @@ function GirisForm() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-brown">
-              Şifre
-            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor="password" className="text-sm font-medium text-brown">
+                Şifre
+              </label>
+              <Link
+                href={`/sifremi-unuttum${redirect !== "/" ? `?redirect=${encodeURIComponent(redirect)}` : ""}`}
+                className="text-xs font-medium text-rust-dark underline underline-offset-2 transition hover:text-ink disabled:cursor-not-allowed disabled:text-brown-muted"
+              >
+                Şifremi unuttum
+              </Link>
+            </div>
             <input
               id="password"
               type="password"
@@ -97,12 +117,24 @@ function GirisForm() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || googleLoading}
             className="h-11 bg-rust text-sm font-semibold text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:bg-brown-muted/40"
           >
             {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-brown-muted/20" />
+          <span className="text-xs uppercase tracking-[0.18em] text-brown-muted">veya</span>
+          <span className="h-px flex-1 bg-brown-muted/20" />
+        </div>
+
+        <AuthGoogleButton
+          onClick={handleGoogleSignIn}
+          disabled={loading || googleLoading}
+          loading={googleLoading}
+        />
 
         <p className="mt-6 text-center text-sm text-brown-muted">
           Hesabın yok mu?{" "}

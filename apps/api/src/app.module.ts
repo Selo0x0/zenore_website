@@ -16,6 +16,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { StorageModule } from './storage/storage.module';
 import { ImagesModule } from './images/images.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ImagesModule } from './images/images.module';
     ContentModule,
     DiscountsModule,
     ReviewsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

@@ -27,4 +27,14 @@ export class FirebaseService implements OnModuleInit {
   verifyIdToken(token: string): Promise<DecodedIdToken> {
     return getAuth(this.app).verifyIdToken(token);
   }
+
+  generatePasswordResetLink(
+    email: string,
+    continueUrl: string,
+  ): Promise<string> {
+    return getAuth(this.app).generatePasswordResetLink(email, {
+      url: continueUrl,
+      handleCodeInApp: false,
+    });
+  }
 }
