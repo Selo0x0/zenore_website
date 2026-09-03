@@ -67,6 +67,15 @@ export class OrdersService {
     private readonly discounts: DiscountsService,
   ) {}
 
+  async findPublicByOrderNumber(orderNumber: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderNumber },
+      select: orderSelect,
+    });
+    if (!order) throw new NotFoundException('Sipariş bulunamadı.');
+    return order;
+  }
+
   async findByOrderNumber(orderNumber: string, customerId: string) {
     const order = await this.prisma.order.findFirst({
       where: { orderNumber, customerId },

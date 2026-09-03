@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { use } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { ProductImage } from "@/app/product-image";
@@ -41,10 +40,17 @@ export default function SiparisOnayPage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = use(params);
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pollTimedOut, setPollTimedOut] = useState(false);
+  const pollAttemptsRef = useRef(0);
+
+  const fetchOrder = async () => {
+    const data = await apiFetch<Order>(`/orders/${orderNumber}`);
+    setOrder(data);
+    return data;
+  };
 
   useEffect(() => {
     // Arriving here via router.push from a scrolled checkout page can leave
@@ -54,27 +60,43 @@ export default function SiparisOnayPage({
   }, []);
 
   useEffect(() => {
-    if (!user) return;
     (async () => {
       try {
-        const token = await user.getIdToken();
-        const data = await apiFetch<Order>(`/orders/${orderNumber}`, token);
-        if (data.paymentStatus !== "PAID") {
-          // This route only ever represents a completed order — anything
-          // still pending/failed payment belongs on the payment step.
-          router.replace(`/odeme/${orderNumber}`);
-          return;
-        }
-        setOrder(data);
+        await fetchOrder();
       } catch {
         // order not found
       } finally {
         setLoading(false);
       }
     })();
-  }, [user, orderNumber, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderNumber]);
 
-  if (authLoading || loading) {
+  useEffect(() => {
+    if (order?.paymentStatus !== "PENDING") return;
+
+    const timer = setInterval(() => {
+      pollAttemptsRef.current += 1;
+      if (pollAttemptsRef.current > 40) {
+        clearInterval(timer);
+        setPollTimedOut(true);
+        return;
+      }
+
+      void (async () => {
+        try {
+          await fetchOrder();
+        } catch {
+          // transient read issue; keep polling until timeout
+        }
+      })();
+    }, 3000);
+
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.paymentStatus, orderNumber]);
+
+  if (loading) {
     return (
       <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">
@@ -91,6 +113,87 @@ export default function SiparisOnayPage({
           <p className="text-lg font-semibold">Sipariş bulunamadı.</p>
           <Link href="/" className="text-sm text-brown-muted hover:text-ink">
             Ana Sayfaya Dön
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (order.paymentStatus === "PENDING") {
+    return (
+      <main className="min-h-screen bg-cream text-ink">
+        <div className="mx-auto flex max-w-2xl flex-col items-center px-5 py-24 text-center sm:px-8">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-cream-soft">
+            <div className="h-7 w-7 animate-spin rounded-full border-2 border-brown-muted/20 border-t-rust" />
+          </div>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-brown-muted">
+            Ödeme Kontrol Ediliyor
+          </p>
+          <h1 className="mt-2 font-serif text-2xl text-ink">
+            Siparişinizin ödeme onayı bekleniyor
+          </h1>
+          <p className="mt-3 max-w-md text-sm leading-6 text-brown-muted">
+            PayTR ödeme sonucunu bize iletiyor. Bu genelde birkaç saniye sürer;
+            lütfen bu sayfayı kapatmayın.
+          </p>
+          <div className="mt-6 rounded border border-brown-muted/15 bg-cream-soft px-5 py-3">
+            <p className="text-xs font-medium uppercase tracking-wider text-brown-muted">
+              Sipariş Numarası
+            </p>
+            <p className="mt-1 font-mono text-lg font-semibold text-ink">
+              {order.orderNumber}
+            </p>
+          </div>
+          {pollTimedOut && (
+            <div className="mt-6 border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+              Onay beklenenden uzun sürdü. Ödeme yaptıysanız siparişiniz kısa
+              süre içinde güncellenir.
+              <button
+                type="button"
+                onClick={() => {
+                  setPollTimedOut(false);
+                  pollAttemptsRef.current = 0;
+                  void fetchOrder();
+                }}
+                className="ml-2 font-medium underline underline-offset-2"
+              >
+                Durumu Yenile
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+    );
+  }
+
+  if (order.paymentStatus === "FAILED") {
+    return (
+      <main className="min-h-screen bg-cream text-ink">
+        <div className="mx-auto flex max-w-2xl flex-col items-center px-5 py-24 text-center sm:px-8">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <svg
+              className="h-8 w-8 text-red-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </div>
+          <h1 className="font-serif text-2xl text-ink">Ödeme Alınamadı</h1>
+          <p className="mt-3 max-w-md text-sm leading-6 text-brown-muted">
+            Ödemeniz tamamlanamadı. Dilerseniz ödeme adımına dönüp tekrar
+            deneyebilirsiniz.
+          </p>
+          <Link
+            href={`/odeme/${order.orderNumber}`}
+            className="mt-6 flex h-12 items-center justify-center bg-rust px-7 text-sm font-medium text-cream transition hover:bg-rust-dark"
+          >
+            Ödemeyi Tekrar Dene
           </Link>
         </div>
       </main>
@@ -182,10 +285,10 @@ export default function SiparisOnayPage({
         {/* CTAs */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="/hesabim"
+            href={user ? "/hesabim" : "/giris?redirect=/hesabim"}
             className="flex h-12 w-full items-center justify-center bg-rust text-sm font-medium text-cream transition hover:bg-rust-dark sm:flex-1"
           >
-            Siparişlerimi Görüntüle
+            {user ? "Siparişlerimi Görüntüle" : "Üye Girişi Yap"}
           </Link>
           <Link
             href="/"

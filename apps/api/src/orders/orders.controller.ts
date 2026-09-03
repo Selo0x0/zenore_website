@@ -3,10 +3,14 @@ import { Throttle } from '@nestjs/throttler';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { OptionalFirebaseAuthGuard } from '../auth/optional-firebase-auth.guard';
 import { CustomersService } from '../customers/customers.service';
 import { OrdersService } from './orders.service';
 
 type PlaceOrderBody = {
+  customerName?: unknown;
+  customerEmail?: unknown;
+  customerPhone?: unknown;
   shippingName: unknown;
   shippingPhone: unknown;
   shippingCity: unknown;
@@ -17,7 +21,6 @@ type PlaceOrderBody = {
 };
 
 @Controller('orders')
-@UseGuards(FirebaseAuthGuard)
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
@@ -25,17 +28,25 @@ export class OrdersController {
   ) {}
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @UseGuards(OptionalFirebaseAuthGuard)
   @Post()
   async createOrder(
-    @CurrentUser() user: DecodedIdToken,
+    @CurrentUser() user: DecodedIdToken | undefined,
     @Body() body: PlaceOrderBody,
   ) {
-    const customer = await this.customersService.findByFirebaseUid(user.uid);
+    const customer = user
+      ? await this.customersService.findByFirebaseUid(user.uid)
+      : null;
+
     return this.ordersService.createOrder({
-      customerId: customer.id,
-      customerName: customer.displayName ?? customer.email,
-      customerEmail: customer.email || user.email || '',
-      customerPhone: body.shippingPhone,
+      ...(customer && { customerId: customer.id }),
+      customerName: customer
+        ? (customer.displayName ?? customer.email)
+        : body.customerName,
+      customerEmail: customer
+        ? customer.email || user?.email || ''
+        : body.customerEmail,
+      customerPhone: customer ? body.shippingPhone : body.customerPhone,
       shippingName: body.shippingName,
       shippingPhone: body.shippingPhone,
       shippingCity: body.shippingCity,
@@ -47,6 +58,12 @@ export class OrdersController {
   }
 
   @Get(':orderNumber')
+  findOrder(@Param('orderNumber') orderNumber: string) {
+    return this.ordersService.findPublicByOrderNumber(orderNumber);
+  }
+
+  @UseGuards(FirebaseAuthGuard)
+  @Get('me/:orderNumber')
   async getOrder(
     @CurrentUser() user: DecodedIdToken,
     @Param('orderNumber') orderNumber: string,

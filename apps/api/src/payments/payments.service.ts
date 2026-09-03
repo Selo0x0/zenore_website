@@ -10,7 +10,7 @@ import { MailService } from '../mail/mail.service';
 import {
   buildGetTokenHash,
   buildUserBasket,
-  toMerchantOid,
+  createMerchantOid,
   verifyCallbackHash,
 } from './paytr.util';
 
@@ -90,9 +90,9 @@ export class PaymentsService {
     return value;
   }
 
-  async initPayment(orderNumber: string, customerId: string, clientIp: string) {
-    const order = await this.prisma.order.findFirst({
-      where: { orderNumber, customerId },
+  async initPayment(orderNumber: string, clientIp: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderNumber },
       select: orderWithItemsSelect,
     });
 
@@ -102,14 +102,11 @@ export class PaymentsService {
       throw new BadRequestException('Bu sipariş için ödeme zaten alınmış.');
     }
 
-    let merchantOid = order.paymentReference;
-    if (!merchantOid) {
-      merchantOid = toMerchantOid(order.orderNumber);
-      await this.prisma.order.update({
-        where: { id: order.id },
-        data: { paymentReference: merchantOid },
-      });
-    }
+    const merchantOid = createMerchantOid(order.orderNumber);
+    await this.prisma.order.update({
+      where: { id: order.id },
+      data: { paymentReference: merchantOid },
+    });
 
     const userBasket = buildUserBasket(order.items);
     const currency = order.currency === 'TRY' ? 'TL' : order.currency;

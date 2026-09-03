@@ -39,7 +39,7 @@ type Address = {
   isDefault: boolean;
 };
 
-const emptyForm = { fullName: "", phone: "", city: "", district: "", address: "" };
+const emptyForm = { fullName: "", email: "", phone: "", city: "", district: "", address: "" };
 
 type AppliedDiscount = { code: string; discountKurus: number };
 
@@ -50,7 +50,7 @@ export default function OdemePage() {
   const currency = items[0]?.currency ?? "TRY";
 
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedId, setSelectedId] = useState<string | "new" | null>(null);
+  const [selectedId, setSelectedId] = useState<string | "new">("new");
   const [newForm, setNewForm] = useState(emptyForm);
   const [placing, setPlacing] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -99,19 +99,15 @@ export default function OdemePage() {
   }
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/giris?redirect=/odeme");
-    }
-  }, [user, authLoading, router]);
-
-  useEffect(() => {
     if (!authLoading && !items.length && !orderPlacedRef.current) {
       router.push("/cart");
     }
   }, [items, authLoading, router]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) return;
+
     (async () => {
       try {
         const token = await user.getIdToken();
@@ -123,19 +119,22 @@ export default function OdemePage() {
         setSelectedId("new");
       }
     })();
-  }, [user]);
+  }, [user, authLoading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) return;
 
     let shipping: typeof emptyForm;
     if (selectedId === "new") {
-      shipping = newForm;
+      shipping = {
+        ...newForm,
+        email: newForm.email || user?.email || "",
+      };
     } else {
       const addr = addresses.find((a) => a.id === selectedId)!;
       shipping = {
         fullName: addr.fullName,
+        email: user?.email ?? "",
         phone: addr.phone,
         city: addr.city,
         district: addr.district,
@@ -145,6 +144,12 @@ export default function OdemePage() {
 
     if (!shipping.fullName || shipping.fullName.trim().length < 2) {
       showToast("Ad soyad en az 2 karakter olmalıdır.");
+      return;
+    }
+
+    const email = shipping.email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast("Geçerli bir e-posta adresi giriniz.");
       return;
     }
 
@@ -170,10 +175,13 @@ export default function OdemePage() {
 
     setPlacing(true);
     try {
-      const token = await user.getIdToken();
+      const token = user ? await user.getIdToken() : undefined;
       const order = await apiFetch<{ orderNumber: string }>("/orders", token, {
         method: "POST",
         body: JSON.stringify({
+          customerName: shipping.fullName,
+          customerEmail: email,
+          customerPhone: shipping.phone,
           shippingName: shipping.fullName,
           shippingPhone: shipping.phone,
           shippingCity: shipping.city,
@@ -193,7 +201,7 @@ export default function OdemePage() {
     }
   }
 
-  if (authLoading || selectedId === null) {
+  if (authLoading) {
     return (
       <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">
@@ -219,7 +227,14 @@ export default function OdemePage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
             {/* Address section */}
             <div className="flex flex-col gap-6">
-              <h2 className="font-serif text-lg text-ink">Teslimat Adresi</h2>
+              <div>
+                <h2 className="font-serif text-lg text-ink">Teslimat Bilgileri</h2>
+                {!user && (
+                  <p className="mt-1 text-sm text-brown-muted">
+                    Üye olmadan devam edebilirsiniz. Sipariş bilgileri e-posta adresinize gönderilir.
+                  </p>
+                )}
+              </div>
 
               {addresses.length > 0 && (
                 <div className="flex flex-col gap-3">
@@ -309,6 +324,19 @@ export default function OdemePage() {
                         value={newForm.fullName}
                         onChange={(e) => setNewForm((p) => ({ ...p, fullName: e.target.value }))}
                         placeholder="Ad Soyad"
+                        className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-brown">
+                        E-posta <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        required={selectedId === "new"}
+                        type="email"
+                        value={newForm.email || user?.email || ""}
+                        onChange={(e) => setNewForm((p) => ({ ...p, email: e.target.value }))}
+                        placeholder="ornek@email.com"
                         className="border border-brown-muted/20 bg-cream px-3 py-2.5 text-sm text-ink outline-none transition focus:border-rust focus:bg-cream-soft"
                       />
                     </div>

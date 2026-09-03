@@ -5,7 +5,6 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
-import { useAuth } from "@/contexts/auth-context";
 import { apiFetch } from "@/lib/api";
 import { formatPrice } from "@/app/products/product-data";
 
@@ -29,7 +28,6 @@ export default function OdemeSayfasiPage({
 }) {
   const { orderNumber } = use(params);
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [iframeToken, setIframeToken] = useState<string | null>(null);
@@ -47,8 +45,8 @@ export default function OdemeSayfasiPage({
     window.scrollTo(0, 0);
   }, []);
 
-  async function fetchOrder(token: string) {
-    const data = await apiFetch<Order>(`/orders/${orderNumber}`, token);
+  async function fetchOrder() {
+    const data = await apiFetch<Order>(`/orders/${orderNumber}`);
     setOrder(data);
     if (data.paymentStatus === "PAID") {
       router.push(`/siparis/${orderNumber}`);
@@ -56,11 +54,11 @@ export default function OdemeSayfasiPage({
     return data;
   }
 
-  async function startPayment(token: string) {
+  async function startPayment() {
     try {
       const result = await apiFetch<{ iframeToken: string }>(
         "/payments/paytr/init",
-        token,
+        undefined,
         { method: "POST", body: JSON.stringify({ orderNumber }) },
       );
       setIframeToken(result.iframeToken);
@@ -74,11 +72,9 @@ export default function OdemeSayfasiPage({
 
   // Initial order fetch.
   useEffect(() => {
-    if (!user) return;
     (async () => {
       try {
-        const token = await user.getIdToken();
-        await fetchOrder(token);
+        await fetchOrder();
       } catch {
         // order not found
       } finally {
@@ -86,25 +82,24 @@ export default function OdemeSayfasiPage({
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, orderNumber]);
+  }, [orderNumber]);
 
   // Auto-init payment once, the first time the order is seen as PENDING.
   useEffect(() => {
-    if (!user || !order) return;
+    if (!order) return;
     if (order.paymentStatus !== "PENDING") return;
     if (initCalledRef.current) return;
     initCalledRef.current = true;
 
     (async () => {
-      const token = await user.getIdToken();
-      await startPayment(token);
+      await startPayment();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, order?.paymentStatus, orderNumber]);
+  }, [order?.paymentStatus, orderNumber]);
 
   // Poll for the webhook-driven status update while payment is PENDING.
   useEffect(() => {
-    if (!user || order?.paymentStatus !== "PENDING") {
+    if (order?.paymentStatus !== "PENDING") {
       if (pollTimerRef.current) {
         clearInterval(pollTimerRef.current);
         pollTimerRef.current = null;
@@ -121,8 +116,7 @@ export default function OdemeSayfasiPage({
       }
       void (async () => {
         try {
-          const token = await user.getIdToken();
-          await fetchOrder(token);
+          await fetchOrder();
         } catch {
           // transient error — keep polling
         }
@@ -136,7 +130,7 @@ export default function OdemeSayfasiPage({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, order?.paymentStatus, orderNumber]);
+  }, [order?.paymentStatus, orderNumber]);
 
   useEffect(() => {
     if (!scriptLoaded || !iframeToken) return;
@@ -147,33 +141,31 @@ export default function OdemeSayfasiPage({
   }, [scriptLoaded, iframeToken]);
 
   async function handleRetryPayment() {
-    if (!user || retrying) return;
+    if (retrying) return;
     setRetrying(true);
     setIframeToken(null);
     pollAttemptsRef.current = 0;
     setPollTimedOut(false);
     try {
-      const token = await user.getIdToken();
-      await startPayment(token);
+      await startPayment();
     } finally {
       setRetrying(false);
     }
   }
 
   async function handleRefreshStatus() {
-    if (!user || refreshing) return;
+    if (refreshing) return;
     setRefreshing(true);
     pollAttemptsRef.current = 0;
     setPollTimedOut(false);
     try {
-      const token = await user.getIdToken();
-      await fetchOrder(token);
+      await fetchOrder();
     } finally {
       setRefreshing(false);
     }
   }
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">

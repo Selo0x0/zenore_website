@@ -6,13 +6,8 @@ import {
   HttpCode,
   Ip,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import type { DecodedIdToken } from 'firebase-admin/auth';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { CustomersService } from '../customers/customers.service';
 import { PaymentsService, type PaytrCallbackBody } from './payments.service';
 
 type InitPaymentBody = {
@@ -21,25 +16,16 @@ type InitPaymentBody = {
 
 @Controller('payments/paytr')
 export class PaymentsController {
-  constructor(
-    private readonly payments: PaymentsService,
-    private readonly customersService: CustomersService,
-  ) {}
+  constructor(private readonly payments: PaymentsService) {}
 
-  @UseGuards(FirebaseAuthGuard)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('init')
-  async init(
-    @CurrentUser() user: DecodedIdToken,
-    @Ip() ip: string,
-    @Body() body: InitPaymentBody,
-  ) {
+  async init(@Ip() ip: string, @Body() body: InitPaymentBody) {
     if (typeof body.orderNumber !== 'string' || !body.orderNumber) {
       throw new BadRequestException('orderNumber is required.');
     }
 
-    const customer = await this.customersService.findByFirebaseUid(user.uid);
-    return this.payments.initPayment(body.orderNumber, customer.id, ip);
+    return this.payments.initPayment(body.orderNumber, ip);
   }
 
   @SkipThrottle()

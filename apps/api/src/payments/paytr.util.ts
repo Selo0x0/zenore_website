@@ -1,7 +1,11 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-export function toMerchantOid(orderNumber: string): string {
-  return orderNumber.replace(/-/g, '');
+export function createMerchantOid(orderNumber: string): string {
+  const safeOrderNumber = orderNumber.replace(/[^a-zA-Z0-9]/g, '');
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+
+  return `${safeOrderNumber}${timestamp}${random}`.slice(0, 64);
 }
 
 export type GetTokenHashParams = {
