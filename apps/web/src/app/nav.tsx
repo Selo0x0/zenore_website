@@ -7,6 +7,7 @@ import { getCategories, type Category } from "./products/product-data";
 
 const STATIC_ITEMS = [
   { label: "Hakkımızda", href: "/hakkimizda" },
+  { label: "S.S.S.", href: "/sikca-sorulan-sorular" },
   { label: "İletişim", href: "/iletisim" },
 ];
 

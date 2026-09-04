@@ -93,6 +93,15 @@ const navItems = [
     ),
   },
   {
+    href: "/admin/sorular",
+    label: "S.S.S.",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4" /><line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+  },
+  {
     href: "/admin/iletisim",
     label: "İletişim",
     icon: (

@@ -34,6 +34,9 @@ export function SiteFooter() {
           <Link href="/hakkimizda" className="text-sm text-brown transition hover:text-rust-dark">
             Hakkımızda
           </Link>
+          <Link href="/sikca-sorulan-sorular" className="text-sm text-brown transition hover:text-rust-dark">
+            Sıkça Sorulan Sorular
+          </Link>
           <Link href="/iletisim" className="text-sm text-brown transition hover:text-rust-dark">
             İletişim
           </Link>

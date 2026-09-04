@@ -8,6 +8,7 @@ export const revalidate = 3600;
 const staticRoutes = [
   "",
   "/hakkimizda",
+  "/sikca-sorulan-sorular",
   "/iletisim",
   "/gizlilik-politikasi",
   "/mesafeli-satis-sozlesmesi",

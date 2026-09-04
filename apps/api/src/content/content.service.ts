@@ -32,9 +32,38 @@ const DEFAULT_CONTACT = {
   hours: 'Hafta içi 09:00 – 18:00',
 };
 
+const DEFAULT_FAQ = {
+  hero: 'Sıkça Sorulan Sorular',
+  heroSub:
+    'Sipariş, kargo, ödeme ve ürün bakımı hakkında en çok merak edilen konular.',
+  items: [
+    {
+      question: 'Siparişim ne zaman kargoya verilir?',
+      answer:
+        'Stokta bulunan ürünler genellikle 1-3 iş günü içinde hazırlanıp kargoya teslim edilir.',
+    },
+    {
+      question: 'Kargo ücreti nasıl hesaplanır?',
+      answer:
+        'Kargo ücreti sepet toplamına göre hesaplanır. Belirlenen ücretsiz kargo limitinin üzerindeki siparişlerde kargo ücretsizdir.',
+    },
+    {
+      question: 'Ürünler hakiki deri mi?',
+      answer:
+        'Evet, Zenore ürünlerinde hakiki deri ve özenli el işçiliği kullanılır.',
+    },
+    {
+      question: 'İade veya değişim yapabilir miyim?',
+      answer:
+        'Kullanılmamış ürünlerde iade ve değişim talepleriniz için bizimle iletişime geçebilirsiniz.',
+    },
+  ],
+};
+
 const DEFAULTS: Record<string, unknown> = {
   about: DEFAULT_ABOUT,
   contact: DEFAULT_CONTACT,
+  faq: DEFAULT_FAQ,
 };
 
 @Injectable()
