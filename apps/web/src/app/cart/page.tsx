@@ -1,14 +1,52 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ProductImage } from "../product-image";
 import { formatPrice } from "../products/product-data";
 import { useCart } from "./cart-context";
 import { EmptyState, emptyStateIcons } from "../empty-state";
+import { apiUrl } from "@/lib/api";
+
+type ShippingSettings = {
+  feeKurus: number;
+  freeShippingThresholdKurus: number;
+  isActive: boolean;
+};
+
+const defaultShippingSettings: ShippingSettings = {
+  feeKurus: 15000,
+  freeShippingThresholdKurus: 200000,
+  isActive: true,
+};
 
 export default function CartPage() {
   const { items, subtotalKurus, updateQuantity, removeItem, clearCart } = useCart();
   const currency = items[0]?.currency ?? "TRY";
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(
+    defaultShippingSettings,
+  );
+  const shippingKurus =
+    shippingSettings.isActive &&
+    subtotalKurus < shippingSettings.freeShippingThresholdKurus
+      ? shippingSettings.feeKurus
+      : 0;
+  const totalKurus = subtotalKurus + shippingKurus;
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${apiUrl}/shipping-settings`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as ShippingSettings;
+        setShippingSettings(data);
+      } catch {
+        // Cart can still render with defaults.
+      }
+    })();
+  }, []);
 
   return (
     <main className="min-h-screen bg-cream text-ink">
@@ -100,14 +138,21 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-brown-muted">Kargo</span>
-                  <span className="font-medium text-green-600">Ücretsiz</span>
+                  <span className={shippingKurus > 0 ? "font-medium text-ink" : "font-medium text-green-600"}>
+                    {shippingKurus > 0 ? formatPrice(shippingKurus, currency) : "Ücretsiz"}
+                  </span>
                 </div>
+                {shippingSettings.isActive && shippingKurus > 0 && (
+                  <p className="text-xs leading-5 text-brown-muted">
+                    {formatPrice(shippingSettings.freeShippingThresholdKurus, currency)} ve üzeri ücretsiz kargo.
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-between border-t border-brown-muted/15 pt-4">
                 <span className="font-semibold text-ink">Toplam</span>
                 <span className="text-lg font-semibold text-ink">
-                  {formatPrice(subtotalKurus, currency)}
+                  {formatPrice(totalKurus, currency)}
                 </span>
               </div>
 

@@ -867,7 +867,20 @@ export default function HesabimPage() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-brown-muted">Kargo</span>
-                          <span className="font-medium text-green-600">Ücretsiz</span>
+                          <span
+                            className={
+                              selectedOrder.shippingKurus > 0
+                                ? "font-medium text-ink"
+                                : "font-medium text-green-600"
+                            }
+                          >
+                            {selectedOrder.shippingKurus > 0
+                              ? formatPrice(
+                                  selectedOrder.shippingKurus,
+                                  selectedOrder.currency,
+                                )
+                              : "Ücretsiz"}
+                          </span>
                         </div>
                         {selectedOrder.discountKurus > 0 && (
                           <div className="flex justify-between">

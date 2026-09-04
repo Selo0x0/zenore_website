@@ -8,6 +8,7 @@ import { randomInt } from 'node:crypto';
 import { isValidTurkishPhone } from '../common/phone.util';
 import { DiscountsService } from '../discounts/discounts.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ShippingService } from '../shipping/shipping.service';
 
 export type CreateOrderDto = {
   customerId?: string;
@@ -65,6 +66,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly discounts: DiscountsService,
+    private readonly shipping: ShippingService,
   ) {}
 
   async findPublicByOrderNumber(orderNumber: string) {
@@ -162,7 +164,8 @@ export class OrdersService {
       (total, item) => total + item.lineTotalKurus,
       0,
     );
-    const shippingKurus = 0;
+    const shippingKurus =
+      await this.shipping.calculateShippingKurus(subtotalKurus);
 
     let discountCode: string | null = null;
     let discountKurus = 0;

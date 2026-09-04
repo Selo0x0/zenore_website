@@ -7,8 +7,8 @@ const badges = [
     ),
   },
   {
-    label: "Ücretsiz Kargo",
-    description: "Tüm siparişlerde ücretsiz kargo.",
+    label: "Kargo Avantajı",
+    description: "Belirlenen tutar üzerindeki siparişlerde ücretsiz kargo.",
     icon: (
       <>
         <rect x="1" y="3" width="15" height="13" rx="1" />

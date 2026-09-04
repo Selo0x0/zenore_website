@@ -267,7 +267,11 @@ export default function SiparisOnayPage({
             </div>
             <div className="flex justify-between">
               <span className="text-brown-muted">Kargo</span>
-              <span className="text-green-600">Ücretsiz</span>
+              <span className={order.shippingKurus > 0 ? "text-ink" : "text-green-600"}>
+                {order.shippingKurus > 0
+                  ? formatPrice(order.shippingKurus, order.currency)
+                  : "Ücretsiz"}
+              </span>
             </div>
             {order.discountKurus > 0 && (
               <div className="flex justify-between">

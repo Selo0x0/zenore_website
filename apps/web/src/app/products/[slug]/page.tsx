@@ -129,7 +129,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               }}
             />
             <p className="text-center text-xs text-brown-muted">
-              Türkiye geneli ücretsiz kargo · 1–3 iş günü teslimat
+              Türkiye geneli hızlı kargo · 1–3 iş günü teslimat
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <circle cx="5.5" cy="18.5" r="2.5" />
                 <circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
-              <span className="font-serif text-xs leading-4 text-ink">Ücretsiz Kargo</span>
+              <span className="font-serif text-xs leading-4 text-ink">Kargo Avantajı</span>
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <svg

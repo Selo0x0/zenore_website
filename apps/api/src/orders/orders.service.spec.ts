@@ -131,6 +131,7 @@ describe('OrdersService', () => {
   };
 
   const discounts = { validateCode: jest.fn() };
+  const shipping = { calculateShippingKurus: jest.fn().mockResolvedValue(0) };
 
   let service: OrdersService;
 
@@ -139,6 +140,7 @@ describe('OrdersService', () => {
     service = new OrdersService(
       prisma as unknown as PrismaService,
       discounts as any,
+      shipping as any,
     );
   });
 

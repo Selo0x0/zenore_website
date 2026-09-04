@@ -49,6 +49,18 @@ type FirstOrderOffer = {
   minOrderKurus: number | null;
 };
 
+type ShippingSettings = {
+  feeKurus: number;
+  freeShippingThresholdKurus: number;
+  isActive: boolean;
+};
+
+const defaultShippingSettings: ShippingSettings = {
+  feeKurus: 15000,
+  freeShippingThresholdKurus: 200000,
+  isActive: true,
+};
+
 export default function OdemePage() {
   const { user, loading: authLoading } = useAuth();
   const { items, subtotalKurus, clearCart } = useCart();
@@ -67,8 +79,17 @@ export default function OdemePage() {
   const orderPlacedRef = useRef(false);
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [firstOrderOffer, setFirstOrderOffer] = useState<FirstOrderOffer | null>(null);
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(
+    defaultShippingSettings,
+  );
 
-  const totalKurus = subtotalKurus - (appliedDiscount?.discountKurus ?? 0);
+  const shippingKurus =
+    shippingSettings.isActive &&
+    subtotalKurus < shippingSettings.freeShippingThresholdKurus
+      ? shippingSettings.feeKurus
+      : 0;
+  const totalKurus =
+    subtotalKurus + shippingKurus - (appliedDiscount?.discountKurus ?? 0);
 
   const selectedAddress = addresses.find((a) => a.id === selectedId);
   const selectedAddressInvalid = !!selectedAddress && !isValidPhone(selectedAddress.phone);
@@ -112,15 +133,23 @@ export default function OdemePage() {
     (async () => {
       try {
         const token = user ? await user.getIdToken() : null;
-        const res = await fetch(`${apiUrl}/discount-codes/first-order-offer`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as FirstOrderOffer | null;
-        setFirstOrderOffer(data);
+        const [offerRes, shippingRes] = await Promise.all([
+          fetch(`${apiUrl}/discount-codes/first-order-offer`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            cache: "no-store",
+          }),
+          fetch(`${apiUrl}/shipping-settings`, { cache: "no-store" }),
+        ]);
+        if (offerRes.ok) {
+          const data = (await offerRes.json()) as FirstOrderOffer | null;
+          setFirstOrderOffer(data);
+        }
+        if (shippingRes.ok) {
+          const settings = (await shippingRes.json()) as ShippingSettings;
+          setShippingSettings(settings);
+        }
       } catch {
-        // Campaign visibility is nice-to-have; checkout still works without it.
+        // Campaign/shipping previews are nice-to-have; order creation remains authoritative.
       }
     })();
   }, [user, authLoading]);
@@ -542,8 +571,15 @@ export default function OdemePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-brown-muted">Kargo</span>
-                  <span className="font-medium text-green-600">Ücretsiz</span>
+                  <span className={shippingKurus > 0 ? "font-medium text-ink" : "font-medium text-green-600"}>
+                    {shippingKurus > 0 ? formatPrice(shippingKurus, currency) : "Ücretsiz"}
+                  </span>
                 </div>
+                {shippingSettings.isActive && shippingKurus > 0 && (
+                  <p className="text-xs leading-5 text-brown-muted">
+                    {formatPrice(shippingSettings.freeShippingThresholdKurus, currency)} ve üzeri ücretsiz kargo.
+                  </p>
+                )}
                 {appliedDiscount && (
                   <div className="flex justify-between">
                     <span className="text-brown-muted">İndirim ({appliedDiscount.code})</span>

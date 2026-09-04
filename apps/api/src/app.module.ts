@@ -17,6 +17,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { StorageModule } from './storage/storage.module';
 import { ImagesModule } from './images/images.module';
 import { AuthModule } from './auth/auth.module';
+import { ShippingModule } from './shipping/shipping.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AuthModule } from './auth/auth.module';
     DiscountsModule,
     ReviewsModule,
     AuthModule,
+    ShippingModule,
   ],
   controllers: [AppController],
   providers: [
