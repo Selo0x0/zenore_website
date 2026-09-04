@@ -29,7 +29,11 @@ const DEFAULT_ABOUT = {
 
 const DEFAULT_CONTACT = {
   email: 'info@zenore.com',
+  phone: '+90 532 123 45 67',
+  address: 'Kapalıçarşı, Beyazıt, İstanbul',
   hours: 'Hafta içi 09:00 – 18:00',
+  instagram: 'zenore_leather',
+  whatsapp: '',
 };
 
 const DEFAULT_FAQ = {

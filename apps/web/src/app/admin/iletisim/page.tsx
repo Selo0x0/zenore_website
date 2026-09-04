@@ -30,8 +30,19 @@ const DEFAULT: ContactContent = {
   address: "Kapalıçarşı, Beyazıt, İstanbul",
   hours: "Hafta içi 09:00 – 18:00",
   instagram: "zenore_leather",
-  whatsapp: "+905321234567",
+  whatsapp: "",
 };
+
+function normalizeContactContent(content: Partial<ContactContent>): ContactContent {
+  return {
+    email: content.email ?? DEFAULT.email,
+    phone: content.phone ?? DEFAULT.phone,
+    address: content.address ?? DEFAULT.address,
+    hours: content.hours ?? DEFAULT.hours,
+    instagram: content.instagram ?? DEFAULT.instagram,
+    whatsapp: content.whatsapp ?? DEFAULT.whatsapp,
+  };
+}
 
 export default function AdminIletisimPage() {
   const { user } = useAuth();
@@ -53,7 +64,7 @@ export default function AdminIletisimPage() {
       ),
     ])
       .then(([content, subs]: [ContactContent, Submission[]]) => {
-        setForm(content);
+        setForm(normalizeContactContent(content));
         setSubmissions(subs);
       })
       .catch(() => null)

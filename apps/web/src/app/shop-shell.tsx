@@ -8,6 +8,7 @@ import { HeaderSearch } from "./header-search";
 import { AuthNav } from "./auth-nav";
 import { MainNav } from "./nav";
 import { SiteFooter } from "./site-footer";
+import { WhatsAppFloatingButton } from "./whatsapp-floating-button";
 import type { ReactNode } from "react";
 
 export function ShopShell({ children }: { children: ReactNode }) {
@@ -45,6 +46,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
         </header>
       )}
       {children}
+      {!isAdmin && <WhatsAppFloatingButton />}
       {!isAdmin && <SiteFooter />}
     </div>
   );
