@@ -49,6 +49,7 @@ model DiscountCode {
   usageLimit    Int?
   usageCount    Int          @default(0)
   minOrderKurus Int?
+  firstOrderOnly Boolean     @default(false)
   expiresAt     DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt

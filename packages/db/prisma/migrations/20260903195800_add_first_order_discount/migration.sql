@@ -1,0 +1,1 @@
+ALTER TABLE "DiscountCode" ADD COLUMN "firstOrderOnly" BOOLEAN NOT NULL DEFAULT false;

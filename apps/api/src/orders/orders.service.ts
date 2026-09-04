@@ -173,6 +173,7 @@ export class OrdersService {
       const result = await this.discounts.validateCode(
         createOrderDto.discountCode,
         subtotalKurus,
+        createOrderDto.customerId,
       );
       discountCode = result.code;
       discountKurus = result.discountKurus;

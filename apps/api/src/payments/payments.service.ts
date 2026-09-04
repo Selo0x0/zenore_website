@@ -32,6 +32,7 @@ export type PaytrCallbackBody = {
 const orderWithItemsSelect = {
   id: true,
   orderNumber: true,
+  customerId: true,
   customerEmail: true,
   customerName: true,
   customerPhone: true,
@@ -100,6 +101,35 @@ export class PaymentsService {
 
     if (order.paymentStatus === 'PAID') {
       throw new BadRequestException('Bu sipariş için ödeme zaten alınmış.');
+    }
+
+    if (order.discountCode) {
+      const discount = await this.prisma.discountCode.findUnique({
+        where: { code: order.discountCode },
+        select: { firstOrderOnly: true },
+      });
+
+      if (discount?.firstOrderOnly) {
+        if (!order.customerId) {
+          throw new BadRequestException(
+            'Bu indirim kodunu kullanmak için giriş yapmalısınız.',
+          );
+        }
+
+        const paidOrderCount = await this.prisma.order.count({
+          where: {
+            customerId: order.customerId,
+            paymentStatus: 'PAID',
+            id: { not: order.id },
+          },
+        });
+
+        if (paidOrderCount > 0) {
+          throw new BadRequestException(
+            'Bu indirim kodu yalnızca ilk sipariş için geçerlidir.',
+          );
+        }
+      }
     }
 
     const merchantOid = createMerchantOid(order.orderNumber);

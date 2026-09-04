@@ -7,6 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 
 type DiscountType = 'PERCENTAGE' | 'FIXED';
+const FIRST_ORDER_CODE = 'ILK10';
 
 export type ValidateResult = {
   valid: true;
@@ -14,6 +15,7 @@ export type ValidateResult = {
   type: DiscountType;
   value: number;
   discountKurus: number;
+  firstOrderOnly: boolean;
 };
 
 @Injectable()
@@ -23,6 +25,7 @@ export class DiscountsService {
   async validateCode(
     rawCode: string,
     subtotalKurus: number,
+    customerId?: string,
   ): Promise<ValidateResult> {
     const code = rawCode.trim().toUpperCase();
     if (!code) throw new BadRequestException('Kod boş olamaz.');
@@ -53,6 +56,22 @@ export class DiscountsService {
         `Bu kod için minimum sepet tutarı ₺${minLira}.`,
       );
     }
+    if (discount.firstOrderOnly) {
+      if (!customerId) {
+        throw new BadRequestException(
+          'Bu indirim kodunu kullanmak için giriş yapmalısınız.',
+        );
+      }
+
+      const paidOrderCount = await this.prisma.order.count({
+        where: { customerId, paymentStatus: 'PAID' },
+      });
+      if (paidOrderCount > 0) {
+        throw new BadRequestException(
+          'Bu indirim kodu yalnızca ilk sipariş için geçerlidir.',
+        );
+      }
+    }
 
     const discountKurus =
       discount.type === 'PERCENTAGE'
@@ -65,7 +84,14 @@ export class DiscountsService {
       type: discount.type,
       value: discount.value,
       discountKurus,
+      firstOrderOnly: discount.firstOrderOnly,
     };
+  }
+
+  async findByCode(rawCode: string) {
+    const code = rawCode.trim().toUpperCase();
+    if (!code) return null;
+    return this.prisma.discountCode.findUnique({ where: { code } });
   }
 
   async applyUsage(code: string) {
@@ -75,18 +101,109 @@ export class DiscountsService {
     });
   }
 
+  async getFirstOrderOffer(customerId?: string) {
+    if (customerId) {
+      const paidOrderCount = await this.prisma.order.count({
+        where: { customerId, paymentStatus: 'PAID' },
+      });
+      if (paidOrderCount > 0) return null;
+    }
+
+    const offers = await this.prisma.discountCode.findMany({
+      where: {
+        isActive: true,
+        firstOrderOnly: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        code: true,
+        type: true,
+        value: true,
+        minOrderKurus: true,
+        firstOrderOnly: true,
+        usageLimit: true,
+        usageCount: true,
+      },
+    });
+
+    const offer =
+      offers.find(
+        (item) => item.usageLimit === null || item.usageCount < item.usageLimit,
+      ) ?? null;
+
+    if (!offer) return null;
+
+    return {
+      code: offer.code,
+      type: offer.type,
+      value: offer.value,
+      minOrderKurus: offer.minOrderKurus,
+      firstOrderOnly: offer.firstOrderOnly,
+    };
+  }
+
   async list(search?: string) {
-    const where = search
-      ? {
-          code: {
-            contains: search.toUpperCase(),
-            mode: 'insensitive' as const,
-          },
-        }
-      : {};
+    const where = {
+      firstOrderOnly: false,
+      ...(search
+        ? {
+            code: {
+              contains: search.toUpperCase(),
+              mode: 'insensitive' as const,
+            },
+          }
+        : {}),
+    };
     return this.prisma.discountCode.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getAdminFirstOrderOffer() {
+    return this.prisma.discountCode.upsert({
+      where: { code: FIRST_ORDER_CODE },
+      update: { firstOrderOnly: true },
+      create: {
+        code: FIRST_ORDER_CODE,
+        type: 'PERCENTAGE',
+        value: 10,
+        isActive: true,
+        firstOrderOnly: true,
+      },
+    });
+  }
+
+  async updateFirstOrderOffer(dto: {
+    value: number;
+    minOrderKurus?: number | null;
+    isActive: boolean;
+  }) {
+    this.validateDto({
+      code: FIRST_ORDER_CODE,
+      type: 'PERCENTAGE',
+      value: dto.value,
+    });
+
+    return this.prisma.discountCode.upsert({
+      where: { code: FIRST_ORDER_CODE },
+      update: {
+        type: 'PERCENTAGE',
+        value: dto.value,
+        minOrderKurus: dto.minOrderKurus ?? null,
+        isActive: dto.isActive,
+        firstOrderOnly: true,
+      },
+      create: {
+        code: FIRST_ORDER_CODE,
+        type: 'PERCENTAGE',
+        value: dto.value,
+        minOrderKurus: dto.minOrderKurus ?? null,
+        isActive: dto.isActive,
+        firstOrderOnly: true,
+      },
     });
   }
 
@@ -116,6 +233,7 @@ export class DiscountsService {
         minOrderKurus: dto.minOrderKurus ?? null,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
         isActive: dto.isActive ?? true,
+        firstOrderOnly: false,
       },
     });
   }

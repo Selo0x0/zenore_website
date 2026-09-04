@@ -42,6 +42,12 @@ type Address = {
 const emptyForm = { fullName: "", email: "", phone: "", city: "", district: "", address: "" };
 
 type AppliedDiscount = { code: string; discountKurus: number };
+type FirstOrderOffer = {
+  code: string;
+  type: "PERCENTAGE" | "FIXED";
+  value: number;
+  minOrderKurus: number | null;
+};
 
 export default function OdemePage() {
   const { user, loading: authLoading } = useAuth();
@@ -60,25 +66,32 @@ export default function OdemePage() {
   const [discountLoading, setDiscountLoading] = useState(false);
   const orderPlacedRef = useRef(false);
   const [discountError, setDiscountError] = useState<string | null>(null);
+  const [firstOrderOffer, setFirstOrderOffer] = useState<FirstOrderOffer | null>(null);
 
   const totalKurus = subtotalKurus - (appliedDiscount?.discountKurus ?? 0);
 
   const selectedAddress = addresses.find((a) => a.id === selectedId);
   const selectedAddressInvalid = !!selectedAddress && !isValidPhone(selectedAddress.phone);
 
-  async function applyDiscount() {
-    if (!discountInput.trim()) return;
+  async function applyDiscount(codeOverride?: string) {
+    const code = (codeOverride ?? discountInput).trim().toUpperCase();
+    if (!code) return;
     setDiscountLoading(true);
     setDiscountError(null);
     try {
+      const token = user ? await user.getIdToken() : null;
       const res = await fetch(`${apiUrl}/discount-codes/validate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: discountInput, subtotalKurus }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ code, subtotalKurus }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? "Geçersiz kod");
       setAppliedDiscount({ code: data.code, discountKurus: data.discountKurus });
+      setDiscountInput(data.code);
     } catch (err) {
       setDiscountError(err instanceof Error ? err.message : "Geçersiz kod");
       setAppliedDiscount(null);
@@ -92,6 +105,25 @@ export default function OdemePage() {
     setDiscountInput("");
     setDiscountError(null);
   }
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    (async () => {
+      try {
+        const token = user ? await user.getIdToken() : null;
+        const res = await fetch(`${apiUrl}/discount-codes/first-order-offer`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as FirstOrderOffer | null;
+        setFirstOrderOffer(data);
+      } catch {
+        // Campaign visibility is nice-to-have; checkout still works without it.
+      }
+    })();
+  }, [user, authLoading]);
 
   function showToast(msg: string) {
     setToastMsg(msg);
@@ -420,6 +452,45 @@ export default function OdemePage() {
 
               {/* Discount code */}
               <div className="border-b border-brown-muted/15 pb-4">
+                {firstOrderOffer && !appliedDiscount && (
+                  <div className="mb-3 border border-rust/20 bg-cream px-3 py-3">
+                    <p className="text-sm font-medium text-ink">
+                      İlk siparişe özel{" "}
+                      {firstOrderOffer.type === "PERCENTAGE"
+                        ? `%${firstOrderOffer.value}`
+                        : formatPrice(firstOrderOffer.value, currency)}{" "}
+                      indirim
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-brown-muted">
+                      Bu kampanya giriş yapan müşterilerin ilk siparişinde geçerlidir.
+                    </p>
+                    {user ? (
+                      <button
+                        type="button"
+                        onClick={() => applyDiscount(firstOrderOffer.code)}
+                        disabled={discountLoading}
+                        className="mt-3 text-xs font-semibold text-rust-dark underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {discountLoading ? "Uygulanıyor..." : "İlk sipariş indirimini uygula"}
+                      </button>
+                    ) : (
+                      <div className="mt-3 flex gap-3 text-xs font-semibold">
+                        <Link
+                          href="/giris?redirect=/odeme"
+                          className="text-rust-dark underline underline-offset-4"
+                        >
+                          Giriş yap
+                        </Link>
+                        <Link
+                          href="/kayit?redirect=/odeme"
+                          className="text-rust-dark underline underline-offset-4"
+                        >
+                          Üye ol
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {appliedDiscount ? (
                   <div className="flex items-center justify-between gap-3 bg-emerald-50 px-3 py-2.5">
                     <div className="flex items-center gap-2 text-sm">
@@ -452,7 +523,7 @@ export default function OdemePage() {
                       />
                       <button
                         type="button"
-                        onClick={applyDiscount}
+                        onClick={() => applyDiscount()}
                         disabled={discountLoading || !discountInput.trim()}
                         className="shrink-0 border border-rust-dark px-4 py-2 text-xs font-medium text-rust-dark transition hover:bg-rust-dark hover:text-cream disabled:cursor-not-allowed disabled:opacity-40"
                       >

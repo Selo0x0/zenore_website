@@ -18,8 +18,17 @@ type DiscountCode = {
   usageLimit: number | null;
   usageCount: number;
   minOrderKurus: number | null;
+  firstOrderOnly: boolean;
   expiresAt: string | null;
   createdAt: string;
+};
+
+type FirstOrderOffer = {
+  id: string;
+  code: string;
+  value: number;
+  isActive: boolean;
+  minOrderKurus: number | null;
 };
 
 type FormState = {
@@ -53,6 +62,13 @@ export default function AdminIndirimKodlariPage() {
   const { user } = useAuth();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [firstOrderOffer, setFirstOrderOffer] = useState<FirstOrderOffer | null>(null);
+  const [firstOrderForm, setFirstOrderForm] = useState({
+    value: "10",
+    minOrderKurus: "",
+    isActive: true,
+  });
+  const [savingFirstOrder, setSavingFirstOrder] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -71,8 +87,17 @@ export default function AdminIndirimKodlariPage() {
     if (!user) return;
     try {
       const token = await user.getIdToken();
-      const data = await apiFetch<DiscountCode[]>("/admin/discount-codes", token);
+      const [data, offer] = await Promise.all([
+        apiFetch<DiscountCode[]>("/admin/discount-codes", token),
+        apiFetch<FirstOrderOffer>("/admin/discount-codes/first-order-offer", token),
+      ]);
       setCodes(data);
+      setFirstOrderOffer(offer);
+      setFirstOrderForm({
+        value: String(offer.value),
+        minOrderKurus: offer.minOrderKurus !== null ? String(offer.minOrderKurus / 100) : "",
+        isActive: offer.isActive,
+      });
     } catch {
       // ignore
     } finally {
@@ -195,12 +220,44 @@ export default function AdminIndirimKodlariPage() {
     }
   }
 
+  async function handleSaveFirstOrderOffer() {
+    if (!user || !firstOrderForm.value.trim()) return;
+    setSavingFirstOrder(true);
+    try {
+      const token = await user.getIdToken();
+      const updated = await apiFetch<FirstOrderOffer>("/admin/discount-codes/first-order-offer", token, {
+        method: "PATCH",
+        body: JSON.stringify({
+          value: parseInt(firstOrderForm.value, 10),
+          minOrderKurus: firstOrderForm.minOrderKurus.trim()
+            ? Math.round(parseFloat(firstOrderForm.minOrderKurus) * 100)
+            : null,
+          isActive: firstOrderForm.isActive,
+        }),
+      });
+      setFirstOrderOffer(updated);
+      setFirstOrderForm({
+        value: String(updated.value),
+        minOrderKurus: updated.minOrderKurus !== null ? String(updated.minOrderKurus / 100) : "",
+        isActive: updated.isActive,
+      });
+      setSavedMsg("İlk sipariş kampanyası güncellendi");
+      setTimeout(() => setSavedMsg(null), 2500);
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "Kampanya kaydedilemedi.";
+      setErrorToast(msg);
+      setTimeout(() => setErrorToast(null), 3000);
+    } finally {
+      setSavingFirstOrder(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl tracking-tight text-ink">İndirim Kodları</h1>
-          <p className="mt-1 text-sm text-brown-muted">{codes.length} kod</p>
+          <p className="mt-1 text-sm text-brown-muted">Kampanyalar ve kupon kodları</p>
         </div>
         <button
           type="button"
@@ -209,6 +266,80 @@ export default function AdminIndirimKodlariPage() {
         >
           + Yeni Kod
         </button>
+      </div>
+
+      <section className="border border-brown-muted/15 bg-cream-soft p-5 sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-serif text-lg text-ink">İlk Sipariş Kampanyası</h2>
+              <span
+                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  firstOrderForm.isActive ? "bg-emerald-50 text-emerald-700" : "bg-cream text-brown-muted"
+                }`}
+              >
+                {firstOrderForm.isActive ? "Aktif" : "Pasif"}
+              </span>
+            </div>
+            <p className="mt-1 text-sm leading-6 text-brown-muted">
+              Üye girişi yapan ve daha önce ödenmiş siparişi olmayan müşterilere checkout ekranında gösterilir.
+            </p>
+            {firstOrderOffer && (
+              <p className="mt-2 text-xs text-brown-muted">
+                İç kampanya kodu: <span className="font-mono text-ink">{firstOrderOffer.code}</span>
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[120px_160px_120px_auto] sm:items-end">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-[0.1em] text-brown-muted">İndirim (%)</span>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={firstOrderForm.value}
+                onChange={(e) => setFirstOrderForm((f) => ({ ...f, value: e.target.value }))}
+                className={inputCls}
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-[0.1em] text-brown-muted">Min. Sepet (₺)</span>
+              <input
+                type="number"
+                min="0"
+                value={firstOrderForm.minOrderKurus}
+                onChange={(e) => setFirstOrderForm((f) => ({ ...f, minOrderKurus: e.target.value }))}
+                placeholder="Yok"
+                className={inputCls}
+              />
+            </label>
+            <label className="flex h-10 cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={firstOrderForm.isActive}
+                onChange={(e) => setFirstOrderForm((f) => ({ ...f, isActive: e.target.checked }))}
+                className="h-4 w-4 accent-neutral-950"
+              />
+              <span className="text-sm text-brown">Aktif</span>
+            </label>
+            <button
+              type="button"
+              onClick={handleSaveFirstOrderOffer}
+              disabled={savingFirstOrder || !firstOrderForm.value.trim()}
+              className="h-10 bg-rust px-4 text-sm font-medium text-cream transition hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingFirstOrder ? "Kaydediliyor..." : "Kaydet"}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-serif text-lg text-ink">Kupon Kodları</h2>
+          <p className="mt-1 text-sm text-brown-muted">{codes.length} kod</p>
+        </div>
       </div>
 
       {loading ? (

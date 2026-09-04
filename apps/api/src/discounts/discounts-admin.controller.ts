@@ -14,6 +14,7 @@ import { IsAdminGuard } from '../auth/is-admin.guard';
 import { DiscountsService } from './discounts.service';
 import { CreateDiscountCodeDto } from './dto/create-discount-code.dto';
 import { UpdateDiscountCodeDto } from './dto/update-discount-code.dto';
+import { UpdateFirstOrderOfferDto } from './dto/update-first-order-offer.dto';
 
 @Controller('admin/discount-codes')
 @UseGuards(FirebaseAuthGuard, IsAdminGuard)
@@ -23,6 +24,16 @@ export class DiscountsAdminController {
   @Get()
   list(@Query('search') search?: string) {
     return this.discounts.list(search);
+  }
+
+  @Get('first-order-offer')
+  getFirstOrderOffer() {
+    return this.discounts.getAdminFirstOrderOffer();
+  }
+
+  @Patch('first-order-offer')
+  updateFirstOrderOffer(@Body() dto: UpdateFirstOrderOfferDto) {
+    return this.discounts.updateFirstOrderOffer(dto);
   }
 
   @Get('generate')
