@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { signInWithGoogle, syncCustomerProfile } from "@/lib/auth";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import { AuthGoogleButton } from "../auth-google-button";
 
 export default function GirisPage() {
@@ -19,7 +20,7 @@ export default function GirisPage() {
 function GirisForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/";
+  const redirect = getSafeRedirectPath(searchParams.get("redirect"), "/");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

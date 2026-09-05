@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { apiUrl } from "@/lib/api";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
 export default function SifremiUnuttumPage() {
   return (
@@ -15,7 +16,7 @@ export default function SifremiUnuttumPage() {
 
 function SifremiUnuttumForm() {
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/";
+  const redirect = getSafeRedirectPath(searchParams.get("redirect"), "/");
 
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);

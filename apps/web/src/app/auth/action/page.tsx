@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
 type ResetState = "checking" | "ready" | "saving" | "success" | "invalid";
 
@@ -20,7 +21,10 @@ function AuthActionContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
   const oobCode = searchParams.get("oobCode");
-  const continueUrl = searchParams.get("continueUrl") ?? "/giris";
+  const continueUrl = getSafeRedirectPath(
+    searchParams.get("continueUrl"),
+    "/giris",
+  );
 
   const [state, setState] = useState<ResetState>("checking");
   const [email, setEmail] = useState("");

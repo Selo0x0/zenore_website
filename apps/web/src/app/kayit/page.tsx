@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { signInWithGoogle, syncCustomerProfile } from "@/lib/auth";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import { AuthGoogleButton } from "../auth-google-button";
 
 export default function KayitPage() {
@@ -19,7 +20,7 @@ export default function KayitPage() {
 function KayitForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/";
+  const redirect = getSafeRedirectPath(searchParams.get("redirect"), "/");
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");

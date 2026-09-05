@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from '../firebase/firebase.service';
 import { MailService } from '../mail/mail.service';
@@ -36,7 +40,10 @@ export class AuthService {
       const resetUrl = new URL('/auth/action', siteUrl);
       resetUrl.searchParams.set('mode', 'resetPassword');
       resetUrl.searchParams.set('oobCode', oobCode);
-      resetUrl.searchParams.set('continueUrl', continueUrl);
+      resetUrl.searchParams.set(
+        'continueUrl',
+        this.getRelativeUrl(continueUrl),
+      );
       resetUrl.searchParams.set('lang', 'tr');
 
       await this.mail.sendPasswordReset(normalizedEmail, resetUrl.toString());
@@ -45,8 +52,13 @@ export class AuthService {
         return { success: true };
       }
 
-      this.logger.error('Failed to send password reset email', error);
-      throw error;
+      const errorCode = getErrorCode(error);
+      this.logger.error(
+        `Failed to send password reset email${errorCode ? ` (${errorCode})` : ''}`,
+      );
+      throw new InternalServerErrorException(
+        'Password reset email could not be sent',
+      );
     }
 
     return { success: true };
@@ -64,6 +76,11 @@ export class AuthService {
       return fallback;
     }
   }
+
+  private getRelativeUrl(value: string) {
+    const parsed = new URL(value);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  }
 }
 
 function isFirebaseUserNotFound(error: unknown): boolean {
@@ -73,4 +90,18 @@ function isFirebaseUserNotFound(error: unknown): boolean {
     'code' in error &&
     error.code === 'auth/user-not-found'
   );
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof error.code === 'string' &&
+    /^[a-z0-9/_-]{1,80}$/i.test(error.code)
+  ) {
+    return error.code;
+  }
+
+  return undefined;
 }
