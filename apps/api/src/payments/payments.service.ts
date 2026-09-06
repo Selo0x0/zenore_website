@@ -7,6 +7,7 @@ import {
 import type { Prisma } from '@zenore/db';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { verifyGuestOrderAccess } from '../orders/order-access.util';
 import {
   buildGetTokenHash,
   buildUserBasket,
@@ -41,6 +42,8 @@ const orderWithItemsSelect = {
   shippingCity: true,
   paymentStatus: true,
   paymentReference: true,
+  guestAccessTokenHash: true,
+  customer: { select: { firebaseUid: true } },
   totalKurus: true,
   currency: true,
   subtotalKurus: true,
@@ -91,13 +94,30 @@ export class PaymentsService {
     return value;
   }
 
-  async initPayment(orderNumber: string, clientIp: string) {
+  async initPayment(
+    orderNumber: string,
+    clientIp: string,
+    firebaseUid?: string,
+    guestAccessToken?: string,
+  ) {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber },
       select: orderWithItemsSelect,
     });
 
     if (!order) throw new NotFoundException('Sipariş bulunamadı.');
+
+    const memberHasAccess = Boolean(
+      firebaseUid && order.customer?.firebaseUid === firebaseUid,
+    );
+    const guestHasAccess = Boolean(
+      !order.customer &&
+      verifyGuestOrderAccess(order.guestAccessTokenHash, guestAccessToken),
+    );
+
+    if (!memberHasAccess && !guestHasAccess) {
+      throw new NotFoundException('Sipariş bulunamadı.');
+    }
 
     if (order.paymentStatus === 'PAID') {
       throw new BadRequestException('Bu sipariş için ödeme zaten alınmış.');
@@ -133,9 +153,27 @@ export class PaymentsService {
     }
 
     const merchantOid = createMerchantOid(order.orderNumber);
-    await this.prisma.order.update({
-      where: { id: order.id },
-      data: { paymentReference: merchantOid },
+    await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.order.updateMany({
+        where: {
+          id: order.id,
+          paymentStatus: { in: ['PENDING', 'FAILED'] },
+        },
+        data: {
+          paymentStatus: 'PENDING',
+          paymentReference: merchantOid,
+        },
+      });
+
+      if (claimed.count === 0) {
+        throw new BadRequestException(
+          'Ödeme başka bir istek tarafından başlatıldı. Lütfen yenileyin.',
+        );
+      }
+
+      await tx.paymentAttempt.create({
+        data: { orderId: order.id, merchantOid },
+      });
     });
 
     const userBasket = buildUserBasket(order.items);
@@ -235,10 +273,19 @@ export class PaymentsService {
       return false;
     }
 
-    const order = await this.prisma.order.findFirst({
-      where: { paymentReference: merchantOid },
-      select: orderWithItemsSelect,
+    const attempt = await this.prisma.paymentAttempt.findUnique({
+      where: { merchantOid },
+      select: {
+        id: true,
+        order: { select: orderWithItemsSelect },
+      },
     });
+    const order =
+      attempt?.order ??
+      (await this.prisma.order.findFirst({
+        where: { paymentReference: merchantOid },
+        select: orderWithItemsSelect,
+      }));
 
     if (!order) {
       this.logger.warn(
@@ -248,24 +295,47 @@ export class PaymentsService {
     }
 
     const rawResponse = body as unknown as Prisma.InputJsonValue;
-    const result = await this.prisma.order.updateMany({
-      where: { paymentReference: merchantOid, paymentStatus: 'PENDING' },
-      data:
-        status === 'success'
-          ? {
-              paymentStatus: 'PAID',
-              status: 'CONFIRMED',
-              paidAt: new Date(),
-              paymentRawResponse: rawResponse,
-            }
-          : {
-              paymentStatus: 'FAILED',
-              paymentRawResponse: rawResponse,
+    const updateOrder = (tx: Pick<Prisma.TransactionClient, 'order'>) =>
+      tx.order.updateMany({
+        where:
+          status === 'success'
+            ? { id: order.id, paymentStatus: { not: 'PAID' as const } }
+            : {
+                id: order.id,
+                paymentReference: merchantOid,
+                paymentStatus: 'PENDING' as const,
+              },
+        data:
+          status === 'success'
+            ? {
+                paymentStatus: 'PAID' as const,
+                status: 'CONFIRMED' as const,
+                paidAt: new Date(),
+                paymentReference: merchantOid,
+                paymentRawResponse: rawResponse,
+              }
+            : {
+                paymentStatus: 'FAILED' as const,
+                paymentRawResponse: rawResponse,
+              },
+      });
+
+    const result = attempt
+      ? await this.prisma.$transaction(async (tx) => {
+          const attemptResult = await tx.paymentAttempt.updateMany({
+            where: { id: attempt.id, status: 'PENDING' },
+            data: {
+              status: status === 'success' ? 'PAID' : 'FAILED',
+              callbackRawResponse: rawResponse,
             },
-    });
+          });
+
+          return attemptResult.count === 0 ? { count: 0 } : updateOrder(tx);
+        })
+      : await updateOrder(this.prisma);
 
     if (result.count === 0) {
-      // Already processed (duplicate notification) — idempotent no-op.
+      // Already processed (duplicate notification), so this is a no-op.
       return true;
     }
 

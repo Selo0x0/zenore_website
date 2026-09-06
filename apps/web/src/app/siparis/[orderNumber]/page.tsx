@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { ProductImage } from "@/app/product-image";
 import { apiFetch, apiUrl } from "@/lib/api";
 import { formatPrice } from "@/app/products/product-data";
+import { getGuestOrderAccessHeaders } from "@/lib/order-access";
 
 type OrderItem = {
   id: string;
@@ -40,14 +41,19 @@ export default function SiparisOnayPage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = use(params);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [pollTimedOut, setPollTimedOut] = useState(false);
   const pollAttemptsRef = useRef(0);
 
   const fetchOrder = async () => {
-    const data = await apiFetch<Order>(`/orders/${orderNumber}`);
+    const firebaseToken = user ? await user.getIdToken() : undefined;
+    const data = await apiFetch<Order>(
+      `/orders/${orderNumber}`,
+      firebaseToken,
+      { headers: getGuestOrderAccessHeaders(orderNumber) },
+    );
     setOrder(data);
     return data;
   };
@@ -60,6 +66,7 @@ export default function SiparisOnayPage({
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
     (async () => {
       try {
         await fetchOrder();
@@ -70,7 +77,7 @@ export default function SiparisOnayPage({
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderNumber]);
+  }, [orderNumber, authLoading]);
 
   useEffect(() => {
     if (order?.paymentStatus !== "PENDING") return;
@@ -96,7 +103,7 @@ export default function SiparisOnayPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.paymentStatus, orderNumber]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">

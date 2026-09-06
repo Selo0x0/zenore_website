@@ -1,9 +1,9 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 export function createMerchantOid(orderNumber: string): string {
   const safeOrderNumber = orderNumber.replace(/[^a-zA-Z0-9]/g, '');
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const random = randomBytes(5).toString('hex').toUpperCase();
 
   return `${safeOrderNumber}${timestamp}${random}`.slice(0, 64);
 }

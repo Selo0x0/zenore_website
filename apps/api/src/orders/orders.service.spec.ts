@@ -1,5 +1,6 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import type { PrismaService } from '../prisma/prisma.service';
+import { createGuestOrderAccess } from './order-access.util';
 import { OrdersService } from './orders.service';
 
 const productImageUrl = '/uploads/products/classic-leather-wallet-1.webp';
@@ -53,6 +54,7 @@ type OrderCreateArgs = {
     subtotalKurus: number;
     shippingKurus: number;
     totalKurus: number;
+    guestAccessTokenHash?: string;
     items: {
       create: OrderItemCreateData[];
     };
@@ -71,6 +73,13 @@ type CreatedOrder = {
   totalKurus: number;
   createdAt: Date;
   items: OrderItemCreateData[];
+};
+
+type AccessibleOrder = CreatedOrder & {
+  discountCode: string | null;
+  discountKurus: number;
+  guestAccessTokenHash: string | null;
+  customer: { firebaseUid: string | null } | null;
 };
 
 describe('OrdersService', () => {
@@ -107,6 +116,7 @@ describe('OrdersService', () => {
   };
 
   const orderCreate = jest.fn<Promise<CreatedOrder>, [OrderCreateArgs]>();
+  const orderFindUnique = jest.fn<Promise<AccessibleOrder | null>, [unknown]>();
 
   const tx = {
     product: {
@@ -126,6 +136,7 @@ describe('OrdersService', () => {
     },
     order: {
       create: orderCreate,
+      findUnique: orderFindUnique,
     },
     $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(tx)),
   };
@@ -175,6 +186,9 @@ describe('OrdersService', () => {
     expect(orderCreateArgs?.data.subtotalKurus).toBe(299980);
     expect(orderCreateArgs?.data.shippingKurus).toBe(0);
     expect(orderCreateArgs?.data.totalKurus).toBe(299980);
+    expect(orderCreateArgs?.data.guestAccessTokenHash).toMatch(
+      /^[a-f0-9]{64}$/,
+    );
     expect(orderCreateArgs?.data.items.create).toEqual([
       {
         productId: 'product-id',
@@ -194,6 +208,78 @@ describe('OrdersService', () => {
         subtotalKurus: 299980,
         totalKurus: 299980,
       }),
+    );
+    expect(order.guestAccessToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
+  it('requires the exact guest token to read a guest order', async () => {
+    const access = createGuestOrderAccess();
+    orderFindUnique.mockResolvedValue({
+      id: 'order-id',
+      orderNumber: 'ZN-20260628-123456',
+      status: 'PENDING',
+      paymentStatus: 'PENDING',
+      currency: 'TRY',
+      subtotalKurus: 149990,
+      shippingKurus: 0,
+      discountCode: null,
+      discountKurus: 0,
+      totalKurus: 149990,
+      createdAt: new Date('2026-06-28T00:00:00.000Z'),
+      items: [],
+      guestAccessTokenHash: access.hash,
+      customer: null,
+    });
+
+    await expect(
+      service.findAccessibleByOrderNumber('ZN-20260628-123456'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      service.findAccessibleByOrderNumber(
+        'ZN-20260628-123456',
+        undefined,
+        'wrong-token',
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    const order = await service.findAccessibleByOrderNumber(
+      'ZN-20260628-123456',
+      undefined,
+      access.token,
+    );
+    expect(order.orderNumber).toBe('ZN-20260628-123456');
+    expect(order).not.toHaveProperty('guestAccessTokenHash');
+    expect(order).not.toHaveProperty('customer');
+  });
+
+  it('allows only the owning Firebase identity to read a member order', async () => {
+    orderFindUnique.mockResolvedValue({
+      id: 'order-id',
+      orderNumber: 'ZN-20260628-654321',
+      status: 'PENDING',
+      paymentStatus: 'PENDING',
+      currency: 'TRY',
+      subtotalKurus: 149990,
+      shippingKurus: 0,
+      discountCode: null,
+      discountKurus: 0,
+      totalKurus: 149990,
+      createdAt: new Date('2026-06-28T00:00:00.000Z'),
+      items: [],
+      guestAccessTokenHash: null,
+      customer: { firebaseUid: 'owner-uid' },
+    });
+
+    await expect(
+      service.findAccessibleByOrderNumber(
+        'ZN-20260628-654321',
+        'different-uid',
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      service.findAccessibleByOrderNumber('ZN-20260628-654321', 'owner-uid'),
+    ).resolves.toEqual(
+      expect.objectContaining({ orderNumber: 'ZN-20260628-654321' }),
     );
   });
 
