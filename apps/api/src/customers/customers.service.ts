@@ -168,6 +168,10 @@ export class CustomersService {
     return this.prisma.order.findMany({
       where: { customerId },
       include: { items: true },
+      omit: {
+        guestAccessTokenHash: true,
+        paymentRawResponse: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

@@ -99,6 +99,10 @@ export class AdminService {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: { items: true },
+      omit: {
+        guestAccessTokenHash: true,
+        paymentRawResponse: true,
+      },
     });
     if (!order) throw new NotFoundException('Sipariş bulunamadı.');
     return order;

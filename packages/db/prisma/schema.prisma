@@ -194,16 +194,32 @@ model Order {
   discountCode    String?
   discountKurus   Int           @default(0)
   totalKurus      Int
-  paymentReference   String?    @unique
-  paidAt             DateTime?
-  paymentRawResponse Json?
+  guestAccessTokenHash String?
+  paymentReference    String?    @unique
+  paidAt              DateTime?
+  paymentRawResponse  Json?
   items           OrderItem[]
+  paymentAttempts PaymentAttempt[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@index([customerId])
   @@index([status])
   @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model PaymentAttempt {
+  id                  String        @id @default(cuid())
+  orderId             String
+  order               Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  merchantOid         String        @unique
+  status              PaymentStatus @default(PENDING)
+  callbackRawResponse Json?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([orderId, status])
   @@index([createdAt])
 }
 

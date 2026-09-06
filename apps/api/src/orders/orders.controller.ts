@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Headers,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
@@ -30,6 +39,7 @@ export class OrdersController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(OptionalFirebaseAuthGuard)
   @Post()
+  @Header('Cache-Control', 'no-store')
   async createOrder(
     @CurrentUser() user: DecodedIdToken | undefined,
     @Body() body: PlaceOrderBody,
@@ -57,18 +67,31 @@ export class OrdersController {
     });
   }
 
+  @UseGuards(OptionalFirebaseAuthGuard)
   @Get(':orderNumber')
-  findOrder(@Param('orderNumber') orderNumber: string) {
-    return this.ordersService.findPublicByOrderNumber(orderNumber);
+  @Header('Cache-Control', 'no-store')
+  findOrder(
+    @CurrentUser() user: DecodedIdToken | undefined,
+    @Param('orderNumber') orderNumber: string,
+    @Headers('x-order-access-token') guestAccessToken?: string,
+  ) {
+    return this.ordersService.findAccessibleByOrderNumber(
+      orderNumber,
+      user?.uid,
+      guestAccessToken,
+    );
   }
 
   @UseGuards(FirebaseAuthGuard)
   @Get('me/:orderNumber')
+  @Header('Cache-Control', 'no-store')
   async getOrder(
     @CurrentUser() user: DecodedIdToken,
     @Param('orderNumber') orderNumber: string,
   ) {
-    const customer = await this.customersService.findByFirebaseUid(user.uid);
-    return this.ordersService.findByOrderNumber(orderNumber, customer.id);
+    return this.ordersService.findAccessibleByOrderNumber(
+      orderNumber,
+      user.uid,
+    );
   }
 }

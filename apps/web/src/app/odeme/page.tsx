@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { ProductImage } from "@/app/product-image";
 import { useCart } from "@/app/cart/cart-context";
 import { apiFetch, apiUrl } from "@/lib/api";
+import { storeGuestOrderAccessToken } from "@/lib/order-access";
 import { formatPrice } from "@/app/products/product-data";
 import { PROVINCES } from "@/lib/turkey-locations";
 import { isValidPhone, sanitizePhoneInput } from "@/lib/phone";
@@ -237,7 +238,10 @@ export default function OdemePage() {
     setPlacing(true);
     try {
       const token = user ? await user.getIdToken() : undefined;
-      const order = await apiFetch<{ orderNumber: string }>("/orders", token, {
+      const order = await apiFetch<{
+        orderNumber: string;
+        guestAccessToken?: string;
+      }>("/orders", token, {
         method: "POST",
         body: JSON.stringify({
           customerName: shipping.fullName,
@@ -252,6 +256,9 @@ export default function OdemePage() {
           ...(appliedDiscount && { discountCode: appliedDiscount.code }),
         }),
       });
+      if (order.guestAccessToken) {
+        storeGuestOrderAccessToken(order.orderNumber, order.guestAccessToken);
+      }
       orderPlacedRef.current = true;
       clearCart();
       router.push(`/odeme/${order.orderNumber}`);

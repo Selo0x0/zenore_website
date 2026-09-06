@@ -9,6 +9,10 @@ import { isValidTurkishPhone } from '../common/phone.util';
 import { DiscountsService } from '../discounts/discounts.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ShippingService } from '../shipping/shipping.service';
+import {
+  createGuestOrderAccess,
+  verifyGuestOrderAccess,
+} from './order-access.util';
 
 export type CreateOrderDto = {
   customerId?: string;
@@ -69,22 +73,46 @@ export class OrdersService {
     private readonly shipping: ShippingService,
   ) {}
 
-  async findPublicByOrderNumber(orderNumber: string) {
+  async findAccessibleByOrderNumber(
+    orderNumber: string,
+    firebaseUid?: string,
+    guestAccessToken?: string,
+  ) {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber },
-      select: orderSelect,
+      select: {
+        ...orderSelect,
+        guestAccessTokenHash: true,
+        customer: { select: { firebaseUid: true } },
+      },
     });
-    if (!order) throw new NotFoundException('Sipariş bulunamadı.');
-    return order;
-  }
+    const memberHasAccess = Boolean(
+      firebaseUid && order?.customer?.firebaseUid === firebaseUid,
+    );
+    const guestHasAccess = Boolean(
+      order &&
+      !order.customer &&
+      verifyGuestOrderAccess(order.guestAccessTokenHash, guestAccessToken),
+    );
 
-  async findByOrderNumber(orderNumber: string, customerId: string) {
-    const order = await this.prisma.order.findFirst({
-      where: { orderNumber, customerId },
-      select: orderSelect,
-    });
-    if (!order) throw new NotFoundException('Sipariş bulunamadı.');
-    return order;
+    if (!order || (!memberHasAccess && !guestHasAccess)) {
+      throw new NotFoundException('Sipariş bulunamadı.');
+    }
+
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      currency: order.currency,
+      subtotalKurus: order.subtotalKurus,
+      shippingKurus: order.shippingKurus,
+      discountCode: order.discountCode,
+      discountKurus: order.discountKurus,
+      totalKurus: order.totalKurus,
+      createdAt: order.createdAt,
+      items: order.items,
+    };
   }
 
   async createOrder(createOrderDto: CreateOrderDto) {
@@ -183,6 +211,9 @@ export class OrdersService {
     }
 
     const totalKurus = subtotalKurus + shippingKurus - discountKurus;
+    const guestAccess = createOrderDto.customerId
+      ? null
+      : createGuestOrderAccess();
 
     const order = await this.prisma.$transaction(async (tx) => {
       for (const item of orderItems) {
@@ -230,6 +261,7 @@ export class OrdersService {
           discountCode,
           discountKurus,
           totalKurus,
+          ...(guestAccess && { guestAccessTokenHash: guestAccess.hash }),
           items: {
             create: orderItems,
           },
@@ -238,7 +270,10 @@ export class OrdersService {
       });
     });
 
-    return order;
+    return {
+      ...order,
+      ...(guestAccess && { guestAccessToken: guestAccess.token }),
+    };
   }
 
   private validateCustomer(createOrderDto: CreateOrderDto) {

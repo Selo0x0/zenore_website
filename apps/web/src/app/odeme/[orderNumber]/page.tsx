@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import { apiFetch } from "@/lib/api";
+import { getGuestOrderAccessHeaders } from "@/lib/order-access";
+import { useAuth } from "@/contexts/auth-context";
 import { formatPrice } from "@/app/products/product-data";
 
 type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -28,6 +30,7 @@ export default function OdemeSayfasiPage({
 }) {
   const { orderNumber } = use(params);
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [iframeToken, setIframeToken] = useState<string | null>(null);
@@ -46,7 +49,12 @@ export default function OdemeSayfasiPage({
   }, []);
 
   async function fetchOrder() {
-    const data = await apiFetch<Order>(`/orders/${orderNumber}`);
+    const firebaseToken = user ? await user.getIdToken() : undefined;
+    const data = await apiFetch<Order>(
+      `/orders/${orderNumber}`,
+      firebaseToken,
+      { headers: getGuestOrderAccessHeaders(orderNumber) },
+    );
     setOrder(data);
     if (data.paymentStatus === "PAID") {
       router.push(`/siparis/${orderNumber}`);
@@ -56,10 +64,15 @@ export default function OdemeSayfasiPage({
 
   async function startPayment() {
     try {
+      const firebaseToken = user ? await user.getIdToken() : undefined;
       const result = await apiFetch<{ iframeToken: string }>(
         "/payments/paytr/init",
-        undefined,
-        { method: "POST", body: JSON.stringify({ orderNumber }) },
+        firebaseToken,
+        {
+          method: "POST",
+          headers: getGuestOrderAccessHeaders(orderNumber),
+          body: JSON.stringify({ orderNumber }),
+        },
       );
       setIframeToken(result.iframeToken);
       setPaymentError(null);
@@ -72,6 +85,7 @@ export default function OdemeSayfasiPage({
 
   // Initial order fetch.
   useEffect(() => {
+    if (authLoading) return;
     (async () => {
       try {
         await fetchOrder();
@@ -82,7 +96,7 @@ export default function OdemeSayfasiPage({
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderNumber]);
+  }, [orderNumber, authLoading]);
 
   // Auto-init payment once, the first time the order is seen as PENDING.
   useEffect(() => {
@@ -165,7 +179,7 @@ export default function OdemeSayfasiPage({
     }
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <main className="min-h-screen bg-cream">
         <div className="mx-auto flex max-w-6xl items-center justify-center px-5 py-32">
